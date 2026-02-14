@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H@B!B! // SUPABASE EDITION</title>
+    <title>H@B!B! </title>
     
     <!-- ============================================ -->
     <!-- SCRIPTS NA ORDEM CORRETA (CRÍTICO!) -->
@@ -173,7 +173,7 @@ https://esm.sh/@supabase/supabase-js@2"></script>
     </div>
 
     <div class="system-header">
-        <div>SYS: <span style="color:#fff">H@B!B!_SUPABASE_V1</span></div>
+        <div>SYS: <span style="color:#fff">H@B!B!</span></div>
         <div id="balance-display" style="color:var(--accent); font-weight:bold; letter-spacing:1px; display:none;"> $ 0,00</div>
         <div id="clock-display">00:00:00</div>
     </div>
@@ -219,7 +219,7 @@ https://esm.sh/@supabase/supabase-js@2"></script>
             <button id="btn-xss" class="btn-tool active-xss" onclick="runTask('xss')">XSS INJECT</button>
             <button id="btn-sql" class="btn-tool" onclick="runTask('sql')">SQL DUMP</button>
             <button id="btn-brute" class="btn-tool" onclick="runTask('brute')">BRUTE FORCE</button>
-            <button id="btn-social" class="btn-tool" onclick="runTask('social')" disabled>SOCIAL SNIFF</button>
+            <button id="btn-social" class="btn-tool" onclick="runTask('social')" disabled>SOCIAL EXP</button>
         </div>
     </div>
 
@@ -277,7 +277,7 @@ https://esm.sh/@supabase/supabase-js@2"></script>
                 }, 500);
             }
         } else {
-            msg.innerText = (result && result.msg) ? result.msg.toUpperCase() : "ERRO DESCONHECIDO";
+            msg.innerText = (result && result.msg) ? result.msg.toUpperCase() : "ERROR";
             document.getElementById('auth-box').classList.add('pass-error');
             setTimeout(() => document.getElementById('auth-box').classList.remove('pass-error'), 400);
         }
