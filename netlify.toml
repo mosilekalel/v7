@@ -1,0 +1,11 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  SUPABASE_URL = "https://kfhkssruuytpmdogauou.supabase.co"
+  SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmaGtzc3J1dXl0cG1kb2dhdW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5OTU4MDcsImV4cCI6MjA4NjU3MTgwN30.5Gu7m1rEj3MEXkA1XYCOqjbPAaDZJT_g5xDVPq_eUpQ"
