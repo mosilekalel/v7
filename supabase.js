@@ -1,1 +1,206 @@
+// supabase.js - VERSÃO SEM MÓDULO (compatible com script src)
+console.log('🚀 Iniciando supabase.js...');
 
+// Aguardar o CONFIG carregar
+(function() {
+    // Verificar CONFIG
+    if (typeof CONFIG === 'undefined') {
+        console.error('❌ ERRO CRÍTICO: CONFIG não definido!');
+        alert('Erro de configuração: CONFIG não carregado');
+        return;
+    }
+    
+    console.log('✅ CONFIG carregado:', CONFIG.SUPABASE_URL);
+    
+    // Verificar se supabase está disponível (agora é global)
+    if (typeof supabase === 'undefined') {
+        console.error('❌ ERRO: Biblioteca Supabase não encontrada!');
+        alert('Erro: Biblioteca Supabase não carregada. Verifique a ordem dos scripts.');
+        return;
+    }
+    
+    // Criar cliente Supabase
+    const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    console.log('✅ Cliente Supabase criado');
+    
+    // ============================================
+    // FUNÇÕES PRINCIPAIS
+    // ============================================
+    
+    window.cadastrar = async function(usuario, senha) {
+        console.log('📝 Tentando cadastrar:', usuario);
+        
+        try {
+            // Verificar se usuário já existe
+            const { data: existentes, error: checkError } = await supabaseClient
+                .from('usuarios')
+                .select('usuario')
+                .eq('usuario', usuario);
+            
+            if (checkError) {
+                console.error('Erro ao verificar usuário:', checkError);
+                return { status: 'error', msg: 'Erro ao verificar usuário' };
+            }
+            
+            if (existentes && existentes.length > 0) {
+                console.log('⚠️ Usuário já existe:', usuario);
+                return { status: 'error', msg: 'Usuário já existe' };
+            }
+            
+            // SEM BCRYPT por enquanto (para teste)
+            const senhaHash = senha;
+            
+            // Inserir novo usuário
+            const { data, error } = await supabaseClient
+                .from('usuarios')
+                .insert([
+                    { 
+                        usuario: usuario, 
+                        senha: senhaHash,
+                        saldo: 0.00,
+                        created_at: new Date().toISOString()
+                    }
+                ])
+                .select();
+            
+            if (error) {
+                console.error('❌ Erro no insert:', error);
+                
+                if (error.code === '23505') {
+                    return { status: 'error', msg: 'Usuário já existe' };
+                }
+                
+                return { status: 'error', msg: error.message };
+            }
+            
+            console.log('✅ Cadastro realizado:', data);
+            return { status: 'success', data };
+            
+        } catch (error) {
+            console.error('❌ Erro no cadastro:', error);
+            return { status: 'error', msg: 'Erro no servidor: ' + error.message };
+        }
+    };
+    
+    window.login = async function(usuario, senha) {
+        console.log('🔑 Tentando login:', usuario);
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('usuarios')
+                .select('*')
+                .eq('usuario', usuario)
+                .maybeSingle();
+            
+            if (error) {
+                console.error('❌ Erro na consulta:', error);
+                return { status: 'error', msg: 'Erro ao buscar usuário' };
+            }
+            
+            if (!data) {
+                console.log('⚠️ Usuário não encontrado:', usuario);
+                return { status: 'error', msg: 'Usuário não encontrado' };
+            }
+            
+            console.log('👤 Usuário encontrado:', data);
+            
+            // Verificar senha (simplificado para teste)
+            if (data.senha !== senha) {
+                console.log('⚠️ Senha incorreta');
+                return { status: 'error', msg: 'Senha incorreta' };
+            }
+            
+            // Salvar sessão
+            localStorage.setItem('logado', 'true');
+            localStorage.setItem('usuario', usuario);
+            localStorage.setItem('user_id', data.id);
+            localStorage.setItem('user_saldo', data.saldo);
+            
+            console.log('✅ Login bem-sucedido');
+            return { status: 'success', data };
+            
+        } catch (error) {
+            console.error('❌ Erro no login:', error);
+            return { status: 'error', msg: 'Erro no servidor: ' + error.message };
+        }
+    };
+    
+    window.getSaldo = async function(usuario) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('usuarios')
+                .select('saldo')
+                .eq('usuario', usuario)
+                .maybeSingle();
+            
+            if (error) {
+                console.error('Erro ao buscar saldo:', error);
+                return { status: 'error', saldo: 0 };
+            }
+            
+            if (!data) {
+                return { status: 'error', saldo: 0 };
+            }
+            
+            return { status: 'success', saldo: data.saldo };
+            
+        } catch (error) {
+            console.error('Erro ao buscar saldo:', error);
+            return { status: 'error', saldo: 0 };
+        }
+    };
+    
+    window.pagarSocial = async function(usuario) {
+        console.log('💰 Processando pagamento social:', usuario);
+        
+        try {
+            // Buscar usuário e saldo
+            const { data: userData, error: selectError } = await supabaseClient
+                .from('usuarios')
+                .select('id, saldo')
+                .eq('usuario', usuario)
+                .maybeSingle();
+            
+            if (selectError || !userData) {
+                console.error('Usuário não encontrado:', selectError);
+                return { status: 'error', msg: 'Usuário não encontrado' };
+            }
+            
+            const saldoAtual = parseFloat(userData.saldo);
+            console.log('💰 Saldo atual:', saldoAtual);
+            
+            if (saldoAtual < 20) {
+                console.log('⚠️ Saldo insuficiente:', saldoAtual);
+                return { status: 'error', msg: 'Saldo insuficiente' };
+            }
+            
+            const novoSaldo = saldoAtual - 20;
+            
+            const { error: updateError } = await supabaseClient
+                .from('usuarios')
+                .update({ saldo: novoSaldo })
+                .eq('id', userData.id);
+            
+            if (updateError) {
+                console.error('Erro ao atualizar saldo:', updateError);
+                return { status: 'error', msg: updateError.message };
+            }
+            
+            localStorage.setItem('user_saldo', novoSaldo);
+            console.log('✅ Pagamento realizado. Novo saldo:', novoSaldo);
+            
+            return { status: 'success' };
+            
+        } catch (error) {
+            console.error('❌ Erro no pagamento:', error);
+            return { status: 'error', msg: 'Erro no pagamento' };
+        }
+    };
+    
+    console.log('✅ Supabase.js carregado com funções:', {
+        cadastrar: typeof window.cadastrar,
+        login: typeof window.login,
+        getSaldo: typeof window.getSaldo,
+        pagarSocial: typeof window.pagarSocial
+    });
+})();
