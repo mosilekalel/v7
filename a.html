@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>H@B!B! // SUPABASE EDITION</title>
     
-    <!-- CONFIGURAÇÕES E DEPENDÊNCIAS -->
-    <script src="config.js"></script>
+    <!-- 1️⃣ PRIMEIRO: Bcrypt (OBRIGATÓRIO) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-    <script type="module" src="https://esm.sh/@supabase/supabase-js@2"></script>
-    <script type="module" src="supabase.js"></script>
+    
+    <!-- 2️⃣ SEGUNDO: Configurações (se você tiver) -->
+    <script src="config.js"></script>
+    
+    <!-- 3️⃣ TERCEIRO: Supabase.js (como módulo) -->
+    <script type="module" src="supabase.js"></scrip>
     
     <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22H%40B!B!%22%2C%22short_name%22%3A%22H%40B!B!%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23FFD700%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARzQklUCAgICHwIZIgAAAHDSURBVFiF7Zc9TsNAEIUfB0dA6Sjik9wAqSgpnAASd6DkBlA6SkQJkqOJ7JGN7F2P7TWlZckr++c9z+zMZNeBf+zfGtAGcANwD3AEcPQfARwD3AI8AXwDPlOtlwNvAJ+2vVhLAlQ2VkmARCWfNgIUgBTABUCiwgngagQoASkACUAFKAF9B6gVYA3gBuCwBqgBpAAtIENaBc0bQ4AtYAtIB0oAGqAPQYAV3+oHwBvAR48Ao7/DuFcDnAE8jxFgHPDbWk8CjHpHNqBx42oZwHlrgC+Aq5kAjx3gHAAQ4FSlZwDXjQAbW2YTwJ0APNs+oWcNcNwK8GXbUwC22D2Apx4BWhnT3SgASWjLpAuwN0ClYhQgBaAAKjWC5xSgVIkKUABUKka+UoBKxShACkCBSkX0nAKoVEQvm38tAxh9dKX2IECtYhQgBSBRSaJMAUqVqAAlAAlUoiZ7ClCpGAUoAUigUjEKkAKQqCQxUoBSJSpACUACEpXESAFKlSgBSUBV/R7uLzCGEiUqLUm4Wn/7/gL7bYj+AvsV6C+wX4H+AvsV6C+wX4H+AvsV6C+wX4H+AvsV6C+wX4H+AvsV6C+wX4H+AvsVmC2wX4H/2z/fbR4U/+X6LQAAAABJRU5ErkJggg%3D%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image/png%22%7D%5D%7D">
     
