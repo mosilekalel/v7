@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H@B!B! // SUPABASE EDITION</title>
+    
+    <!-- CONFIGURAÇÕES E DEPENDÊNCIAS - VERSÃO CORRIGIDA -->
+    <script src="config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22H%40B!B!%22%2C%22short_name%22%3A%22H%40B!B!%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23FFD700%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARzQklUCAgICHwIZIgAAAHDSURBVFiF7Zc9TsNAEIUfB0dA6Sjik9wAqSgpnAASd6DkBlA6SkQJkqOJ7JGN7F2P7TWlZckr++c9z+zMZNeBf+zfGtAGcANwD3AEcPQfARwD3AI8AXwDPlOtlwNvAJ+2vVhLAlQ2VkmARCWfNgIUgBTABUCiwgngagQoASkACUAFKAF9B6gVYA3gBuCwBqgBpAAtIENaBc0bQ4AtYAtIB0oAGqAPQYAV3+oHwBvAR48Ao7/DuFcDnAE8jxFgHPDbWk8CjHpHNqBx42oZwHlrgC+Aq5kAjx3gHAAQ4FSlZwDXjQAbW2YTwJ0APNs+oWcNcNwK8GXbUwC22D2Apx4BWhnT3SgASWjLpAuwN0ClYhQgBaAAKjWC5xSgVIkKUABUKka+UoBKxShACkCBSkX0nAKoVEQvm38tAxh9dKX2IECtYhQgBSBRSaJMAUqVqAAlAAlUoiZ7ClCpGAUoAUigUjEKkAKQqCQxUoBSJSpACUACEpXESAFKlSgBSUBV/R7uLzCGEiUqLUm4Wn/7/gL7bYj+AvsV6C+wX4H+AvsV6C+wX4H+AvsV6C+wX4H+AvsV6C+wX4H+AvsV6C+wX4H+AvsVmC2wX4H/2z/fbR4U/+X6LQAAAABJRU5ErkJggg%3D%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image/png%22%7D%5D%7D">
+    
+    <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+        :root { --gold: #FFD700; --kali: #4d4dff; --accent: #00ff41; --purple: #8a2be2; --neon-red: #FF0000; --gray: #444; --orange: #ff8c00; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Consolas', monospace; color: #fff; }
+        
+        #hacker-intro { position: fixed; inset: 0; background: #000; z-index: 30000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
+        .intro-brand { font-size: 2.5rem; font-weight: bold; letter-spacing: 10px; color: var(--gold); margin-bottom: 5px; display: flex; font-family: 'ZCOOL KuaiLe', cursive; }
+        .intro-iran { font-size: 1.5rem; color: var(--gold); margin-bottom: 40px; letter-spacing: 5px; display: flex; font-family: 'ZCOOL KuaiLe', cursive; }
+        .decoded { color: var(--gold); text-shadow: 0 0 8px var(--gold); animation: letterFlicker 0.3s infinite alternate; }
+        @keyframes letterFlicker { from { opacity: 0.7; text-shadow: 0 0 2px var(--gold); } to { opacity: 1; text-shadow: 0 0 12px var(--gold); } }
+
+        #warning-screen { position: fixed; inset: 0; background: #000; z-index: 25000; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--neon-red); text-align: center; padding: 20px; transition: opacity 0.5s; }
+        .warning-box { border: 1px solid var(--neon-red); padding: 30px; background: rgba(20, 0, 0, 0.9); max-width: 400px; box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
+        .skull-icon { font-size: 50px; margin-bottom: 15px; display: block; }
+
+        #password-screen { position: fixed; inset: 0; background: #000; z-index: 22000; display: none; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        .pass-box { border: 1px solid var(--gold); padding: 30px; background: rgba(5, 5, 5, 0.95); text-align: center; width: 300px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+        .pass-input { background: #000; border: 1px solid var(--gold); color: var(--gold); padding: 12px; width: 100%; text-align: center; font-size: 18px; outline: none; margin-bottom: 10px; box-sizing: border-box; transition: all 0.3s; }
+        .pass-input:focus { box-shadow: 0 0 10px var(--gold); }
+        .pass-error { border-color: var(--neon-red)!important; color: var(--neon-red)!important; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+        .btn-proceed, .btn-warning, .btn-pass { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 12px 30px; font-family: 'Consolas', monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; box-shadow: 0 0 10px var(--accent); animation: btnNeon 1.5s infinite ease-in-out; transition: 0.3s; }
+        .btn-pass { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px var(--gold); animation: none; margin-top: 10px; }
+        .btn-pass:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
+        .btn-warning { border-color: var(--neon-red); color: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
+        @keyframes btnNeon { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        #dataCanvas { position: fixed; inset: 0; z-index: 0; opacity: 0.15; pointer-events: none; }
+        #matrix-bg-login { position: absolute; inset: 0; z-index: 1; opacity: 0.4; }
+        .overlay { position: fixed; inset: 0; background: #000; z-index: 20000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+
+        .system-header { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: rgba(5, 5, 5, 0.95); border-bottom: 1px solid #333; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 10px; color: #666; box-sizing: border-box; }
+        .container { position: relative; z-index: 10; width: 98%; max-width: 500px; margin: 40px auto 0 auto; height: calc(100vh - 80px); display: none; flex-direction: column; padding: 15px 10px 60px 10px; box-sizing: border-box; }
+        .static-title { color: var(--gold); font-size: 2.2em; letter-spacing: 10px; text-align: center; font-weight: bold; }
+        .top-monitor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .monitor { background: #050505; border: 1px solid #222; height: 85px; padding: 5px; overflow-y: auto; font-size: 9px; }
+        #msg-feed-container { flex-grow: 1; overflow-y: auto; border: 1px solid #222; background: #0b141a; padding: 15px; margin-bottom: 10px; position: relative; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; }
+        .msg-block { max-width: 85%; background: #202c33; padding: 8px 12px; margin-bottom: 12px; border-radius: 0 12px 12px 12px; align-self: flex-start; }
+        .msg-text { 
+            font-size: 18px; 
+            color: #ffffff; 
+            line-height: 1.5; 
+            word-wrap: break-word; 
+            font-family: 'Arial', 'Helvetica', sans-serif; 
+            font-weight: 600; 
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        .msg-time { font-size: 9px; color: #8696a0; text-align: right; margin-top: 4px; }
+        .terminal-block { height: 80px; background: #000; border: 1px solid #333; font-size: 10px; padding: 8px; overflow-y: auto; margin-bottom: 15px; }
+        .log-g { color: var(--accent); } .log-y { color: var(--gold); } .log-r { color: var(--neon-red); } .log-b { color: var(--orange); }
+        .command-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+        .btn-tool { height: 55px; background: #0a0a0a; border: 1px solid #333; color: #444; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-tool:disabled { opacity: 0.3; cursor: not-allowed; border-color: var(--gray)!important; color: var(--gray)!important; }
+        .active-xss { border-color: var(--purple)!important; color: var(--purple)!important; }
+        .active-sql { border-color: var(--gold)!important; color: var(--gold)!important; }
+        .active-brute { border-color: var(--orange)!important; color: var(--orange)!important; }
+        .active-social { border-color: var(--accent)!important; color: var(--accent)!important; }
+        .box { border: 2px solid var(--gold); padding: 40px 20px; background: rgba(5, 5, 5, 0.9); text-align: center; width: 90%; max-width: 380px; position: relative; z-index: 2; }
+        .hacker-status-reveal { font-weight: bold; font-size: 13px; text-align: center; margin: 10px 0; letter-spacing: 2px; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-spin { width: 40px; height: 40px; border: 4px solid #111; border-top-color: var(--gold); border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 20px; }
+        
+        .phone-error { border-color: var(--neon-red)!important; color: var(--neon-red)!important; animation: shake 0.4s; }
+        .country-code-hint { color: var(--gold); font-size: 10px; margin-top: 5px; text-align: left; padding-left: 5px; }
+
+        .persian-stats-container {
+            font-family: 'Arial', 'Tahoma', sans-serif;
+            font-size: 11px;
+            color: var(--accent);
+            text-align: right;
+            direction: rtl;
+            padding: 3px;
+            line-height: 1.6;
+            border-top: 1px solid #333;
+            margin-top: 3px;
+        }
+        .persian-stats-container div {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dotted #222;
+            padding: 2px 0;
+        }
+        .persian-label {
+            color: var(--gold);
+            margin-left: 5px;
+        }
+        .persian-value {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .graph-info {
+            font-size: 10px;
+            color: var(--orange);
+            border-bottom: 1px dashed #333;
+            margin-bottom: 4px;
+            padding-bottom: 2px;
+            animation: updateGlow 2s infinite;
+        }
+        @keyframes updateGlow {
+            0% { color: var(--orange); }
+            50% { color: #ffaa00; text-shadow: 0 0 3px orange; }
+            100% { color: var(--orange); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hacker-intro">
+        <div class="intro-brand" id="brand-container"></div>
+        <div class="intro-iran" id="iran-container"></div>
+        <button class="btn-proceed" id="start-btn" onclick="startAdvancedDecode()">Hack</button>
+    </div>
+
+    <div id="warning-screen">
+        <div class="warning-box">
+            <span class="skull-icon">☠️</span>
+            <div class="warning-text">
+                <p style="font-weight:bold; font-size: 18px;">⚠️ CRITICAL WARNING ⚠️</p>
+                <p>هشدار: این ابزار فقط برای نفوذ اخلاقی است.</p>
+                <p>USE AT YOUR OWN RISK. SYSTEM BYPASS IS ACTIVE.</p>
+                <p>☢️ SECURITY PROTOCOLS DISABLED </p>
+            </div>
+            <button class="btn-warning" onclick="showPasswordScreen()">I UNDERSTAND / متوجه شدم</button>
+        </div>
+    </div>
+
+    <div id="password-screen">
+        <div class="pass-box" id="auth-box">
+            <div style="color:var(--gold); margin-bottom:20px; font-size: 12px; letter-spacing: 3px;">ACCESS REQUIRED</div>
+            <input type="text" id="db-user" class="pass-input" placeholder="USUÁRIO">
+            <input type="password" id="db-pass" class="pass-input" placeholder="********">
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-pass" onclick="authDB('login')" style="flex:1">LOGIN</button>
+                <button class="btn-pass" onclick="authDB('cadastrar')" style="flex:1; border-color:var(--accent); color:var(--accent);">REGISTER</button>
+            </div>
+            <p id="auth-msg" style="font-size: 10px; margin-top: 10px; color: var(--neon-red);"></p>
+        </div>
+    </div>
+
+    <div class="system-header">
+        <div>SYS: <span style="color:#fff">H@B!B!_SUPABASE_V1</span></div>
+        <div id="balance-display" style="color:var(--accent); font-weight:bold; letter-spacing:1px; display:none;"> $ 0,00</div>
+        <div id="clock-display">00:00:00</div>
+    </div>
+
+    <canvas id="dataCanvas"></canvas>
+    
+    <div id="boot-loader" class="overlay">
+        <canvas id="matrix-bg-login"></canvas>
+        <div class="box" id="login-box">
+            <div style="color:var(--gold); margin-bottom:25px; font-size: 1.4em; font-weight: bold;">ACCES BYPASS V7</div>
+            <input type="tel" id="target-phone" style="background:#000; border:1px solid var(--gold); color:var(--gold); width:100%; padding:15px; margin-bottom:5px; text-align:center; box-sizing: border-box;" placeholder="+55 (00) 00000-0000">
+            <div class="country-code-hint">⚠️ + و کد کشور اجباری است / + and country code required</div>
+            <button onclick="requestHighLevelAccess()" style="background:var(--gold); border:none; width:100%; padding:15px; margin-top:15px; font-weight:bold; cursor:pointer;">GRANT PRIVILEGES & START</button>
+        </div>
+        <div id="connecting-box" style="display:none; flex-direction:column; align-items:center; z-index: 2;">
+            <div class="loader-spin"></div>
+            <div style="color:var(--gold); font-size: 12px; letter-spacing: 2px; font-weight: bold;">CONNECTING TO TARGET...</div>
+        </div>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <div class="header-area"><div class="static-title">H@B!B!</div></div>
+        <div class="top-monitor-row">
+            <div class="monitor" id="data-mining-display">
+                <div style="color:var(--accent); border-bottom: 1px solid #222; margin-bottom: 5px;">EXTRACTED_DATA / استخراج داده‌ها:</div>
+                <div id="mining-content">
+                    <div class="graph-info">CPU: <span id="cpu-usage">45%</span> | RAM: <span id="ram-usage">62%</span></div>
+                    <div class="graph-info">GK3: <span id="online-users">1,247</span> | TEMP: <span id="cpu-temp">58°C</span></div>
+                    <div class="graph-info">PACK: <span id="packets">2.4K/s</span> | LATENCY: <span id="latency">42ms</span></div>
+                    
+                    <div id="persian-stats-top" class="persian-stats-container"></div>
+                </div>
+            </div>
+            <div class="monitor" style="display:flex; align-items:center; justify-content:center; overflow-y: auto; flex-wrap: wrap;">
+                <div id="decrypt-monitor" style="color:var(--accent); font-size:11px; font-weight: bold; word-break: break-all; padding: 5px;"></div>
+            </div>
+        </div>
+        <div id="msg-feed-container">
+            <div id="msg-feed" style="display: flex; flex-direction: column;"></div>
+        </div>
+        <div class="terminal-block" id="term-log"></div>
+        <div class="command-grid">
+            <button id="btn-xss" class="btn-tool active-xss" onclick="runTask('xss')">XSS INJECT</button>
+            <button id="btn-sql" class="btn-tool" onclick="runTask('sql')">SQL DUMP</button>
+            <button id="btn-brute" class="btn-tool" onclick="runTask('brute')">BRUTE FORCE</button>
+            <button id="btn-social" class="btn-tool" onclick="runTask('social')" disabled>SOCIAL SNIFF</button>
+        </div>
+    </div>
+
+    <script>
+    // ============================================
+    // VARIÁVEIS GLOBAIS
+    // ============================================
+    let userBalance = 0;
+    let totalErrors = 0;
+    let isProcessing = false;
+    let cryptoRate = 0.15;
+    let errorPlan = [];
+    
+    let xssCompleted = false;
+    let sqlCompleted = false;
+    let bruteCompleted = false;
+    
+    let xssStepsCompleted = 0;
+    let sqlStepsCompleted = 0;
+    let bruteStepsCompleted = 0;
+    const xssTotalSteps = 3;
+    const sqlTotalSteps = 5;
+    const bruteTotalSteps = 8;
+
+    // ============================================
+    // FUNÇÕES DE AUTENTICAÇÃO (Adaptadas para Supabase)
+    // ============================================
+    async function authDB(tipo) {
+        const user = document.getElementById('db-user').value;
+        const pass = document.getElementById('db-pass').value;
+        const msg = document.getElementById('auth-msg');
+
+        if(!user || !pass) {
+            msg.innerText = "PREENCHA TODOS OS CAMPOS";
+            return;
+        }
+
+        let result;
+        if (tipo === 'cadastrar') {
+            result = await window.cadastrar(user, pass);
+        } else {
+            result = await window.login(user, pass);
+        }
+
+        if(result && result.status === 'success') {
+            if(tipo === 'cadastrar') {
+                msg.style.color = "var(--accent)";
+                msg.innerText = "CADASTRADO! FAÇA LOGIN.";
+            } else {
+                await updateBalanceDisplay();
+                document.getElementById('password-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('password-screen').style.display = 'none';
+                    showLoginScreen();
+                }, 500);
+            }
+        } else {
+            msg.innerText = (result && result.msg) ? result.msg.toUpperCase() : "ERRO DESCONHECIDO";
+            document.getElementById('auth-box').classList.add('pass-error');
+            setTimeout(() => document.getElementById('auth-box').classList.remove('pass-error'), 400);
+        }
+    }
+
+    async function updateBalanceDisplay() {
+        const user = localStorage.getItem('usuario') || document.getElementById('db-user').value;
+        if (!user) return;
+        
+        const result = await window.getSaldo(user);
+        
+        if(result && result.status === 'success') {
+            userBalance = parseFloat(result.saldo);
+            const display = document.getElementById('balance-display');
+            display.innerText = `$ ${userBalance.toFixed(2)}`;
+            display.style.display = 'block';
+        }
+    }
+
+    // ============================================
+    // FUNÇÕES DE INTERFACE (mantidas do original)
+    // ============================================
+    const fav = document.getElementById('favicon');
+    const icons = ["⏳", "⌛"];
+    let iFav = 0;
+    setInterval(() => {
+        iFav = (iFav + 1) % icons.length;
+        fav.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${icons[iFav]}</text></svg>`;
+    }, 1000);
+
+    const brandStr = "BREAKTOOLS";
+    const iranStr = "شکستن ابزار";
+    const brandCont = document.getElementById('brand-container');
+    const iranCont = document.getElementById('iran-container');
+
+    function prepareText(str, container) {
+        str.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.innerText = char;
+            container.appendChild(span);
+        });
+    }
+    prepareText(brandStr, brandCont);
+    prepareText(iranStr, iranCont);
+
+    function startAdvancedDecode() {
+        const btn = document.getElementById('start-btn');
+        btn.disabled = true;
+        const chars = "۰۱۲۳۴۵۶۷۸۹!@#$%&*?";
+        const totalDuration = 3500;
+        const startTime = Date.now();
+        const decode = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = elapsed / totalDuration;
+            brandCont.querySelectorAll('span').forEach((span, i) => {
+                if (progress > (i / 10)) { span.innerText = brandStr[i]; span.className = "decoded"; span.style.color = "var(--gold)"; }
+                else { span.innerText = chars[Math.floor(Math.random() * chars.length)]; }
+            });
+            iranCont.querySelectorAll('span').forEach((span, i) => {
+                if (progress > (i / 10)) { span.innerText = iranStr[i]; span.className = "decoded"; span.style.color = "var(--gold)"; }
+                else { span.innerText = chars[Math.floor(Math.random() * chars.length)]; }
+            });
+            if (elapsed >= totalDuration) {
+                clearInterval(decode);
+                setTimeout(() => {
+                    document.getElementById('hacker-intro').style.display = 'none';
+                    document.getElementById('warning-screen').style.display = 'flex';
+                }, 500);
+            }
+        }, 50);
+    }
+
+    function showPasswordScreen() {
+        document.getElementById('warning-screen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('warning-screen').style.display = 'none';
+            document.getElementById('password-screen').style.display = 'flex';
+        }, 500);
+    }
+
+    function showLoginScreen() {
+        document.getElementById('boot-loader').style.display = 'flex';
+        initMatrixLogin();
+        const phoneInput = document.getElementById('target-phone');
+        phoneInput.style.transform = 'scale(0.95)';
+        phoneInput.style.transition = 'all 0.5s ease';
+        setTimeout(() => {
+            phoneInput.style.transform = 'scale(1)';
+            phoneInput.style.boxShadow = '0 0 20px var(--gold)';
+        }, 100);
+        setTimeout(() => phoneInput.style.boxShadow = 'none', 600);
+    }
+
+    function setupSessionPlan() {
+        const rng = Math.random() * 100;
+        let numErrors = 0;
+        
+        if (rng <= 30) {
+            numErrors = 0;
+        } else if (rng <= 65) {
+            numErrors = Math.floor(Math.random() * 2) + 1;
+        } else if (rng <= 85) {
+            numErrors = Math.floor(Math.random() * 2) + 3;
+        } else {
+            numErrors = Math.floor(Math.random() * 4) + 5;
+        }
+        
+        errorPlan = new Array(16).fill(false);
+        let placed = 0;
+        while(placed < numErrors) {
+            let idx = Math.floor(Math.random() * 16);
+            if(!errorPlan[idx]) { errorPlan[idx] = true; placed++; }
+        }
+        
+        totalErrors = numErrors;
+        console.log(`Erros planejados: ${numErrors}`);
+    }
+
+    function getCryptoRateFromErrors() {
+        if (totalErrors === 0) return 0.18;
+        if (totalErrors <= 2) return 0.23;
+        if (totalErrors <= 4) return 0.30;
+        return 0.40;
+    }
+
+    async function requestHighLevelAccess() {
+        const phoneInput = document.getElementById('target-phone');
+        const phoneValue = phoneInput.value.trim();
+        if(!phoneValue.startsWith('+') || phoneValue.length < 8) {
+            phoneInput.classList.add('phone-error');
+            setTimeout(() => phoneInput.classList.remove('phone-error'), 400);
+            return;
+        }
+        setupSessionPlan();
+        cryptoRate = getCryptoRateFromErrors();
+        
+        document.getElementById('login-box').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('connecting-box').style.display = 'flex';
+        }, 300);
+        setTimeout(() => {
+            document.getElementById('boot-loader').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'flex';
+            extractDeviceData();
+            initFX();
+            initDecryptMonitor();
+            initPersianStatsTop();
+            initGraphData();
+            
+            xssStepsCompleted = 0;
+            sqlStepsCompleted = 0;
+            bruteStepsCompleted = 0;
+            xssCompleted = false;
+            sqlCompleted = false;
+            bruteCompleted = false;
+        }, 6000);
+    }
+
+    function checkAndEnableSocial() {
+        if(xssCompleted && sqlCompleted && bruteCompleted) {
+            document.getElementById('btn-social').disabled = false;
+            document.getElementById('btn-social').classList.add('active-social');
+        }
+    }
+
+    function hackerStatusReveal(finalMsg, isError = false) {
+        const feed = document.getElementById('msg-feed');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'hacker-status-reveal';
+        msgDiv.style.color = isError ? "var(--neon-red)" : "var(--accent)";
+        feed.appendChild(msgDiv);
+        const persianLabels = { 
+            'XSS_CORE': 'هسته XSS',
+            'XSS_BUFFER': 'بافر XSS',
+            'XSS_FINAL': 'XSS نهایی',
+            'SQL_TABLES': 'جداول SQL',
+            'SQL_SCHEMAS': 'طرح‌های SQL',
+            'SQL_HASHES': 'هش‌های SQL',
+            'SQL_INJECT': 'تزریق SQL',
+            'SQL_SYNC': 'همگام‌سازی SQL',
+            'BRUTE_INIT': 'شروع بی رحم',
+            'BRUTE_PHASE1': 'مرحله ۱',
+            'BRUTE_PHASE2': 'مرحله ۲',
+            'BRUTE_PHASE3': 'مرحله ۳',
+            'BRUTE_PHASE4': 'مرحله ۴',
+            'BRUTE_PHASE5': 'مرحله ۵',
+            'BRUTE_PHASE6': 'مرحله ۶',
+            'BRUTE_PHASE7': 'مرحله ۷',
+            'BRUTE_FINAL': 'نهایی بی رحم',
+            'SUCCESS': 'موفق', 
+            'FAILED': 'ناموفق' 
+        };
+        const persianMsg = persianLabels[finalMsg] || finalMsg;
+        const status = isError ? persianLabels['FAILED'] : persianLabels['SUCCESS'];
+        msgDiv.innerText = persianMsg + ' ' + status;
+        document.getElementById('msg-feed-container').scrollTop = 99999;
+        setTimeout(() => msgDiv.remove(), 3000);
+    }
+
+    async function runTask(type) {
+        if(isProcessing) return;
+        
+        if(type === 'social') {
+            executeSocialAPI();
+            return;
+        }
+        
+        isProcessing = true;
+        const log = document.getElementById('term-log');
+        let phases = [];
+        
+        if(type === 'xss') {
+            phases = [
+                {l: "XSS_CORE", t: 5}, 
+                {l: "XSS_BUFFER", t: 5}, 
+                {l: "XSS_FINAL", t: 5}
+            ];
+        } else if(type === 'sql') {
+            phases = [
+                {l: "SQL_TABLES", t: 5}, 
+                {l: "SQL_SCHEMAS", t: 5}, 
+                {l: "SQL_HASHES", t: 5}, 
+                {l: "SQL_INJECT", t: 5}, 
+                {l: "SQL_SYNC", t: 5}
+            ];
+        } else if(type === 'brute') {
+            phases = [
+                {l: "BRUTE_INIT", t: 3},
+                {l: "BRUTE_PHASE1", t: 2},
+                {l: "BRUTE_PHASE2", t: 2},
+                {l: "BRUTE_PHASE3", t: 2},
+                {l: "BRUTE_PHASE4", t: 2},
+                {l: "BRUTE_PHASE5", t: 2},
+                {l: "BRUTE_PHASE6", t: 2},
+                {l: "BRUTE_PHASE7", t: 2},
+                {l: "BRUTE_FINAL", t: 3}
+            ];
+        }
+
+        let offset = 0;
+        if(type === 'xss') offset = 0;
+        else if(type === 'sql') offset = 3;
+        else if(type === 'brute') offset = 8;
+        
+        for(let i = 0; i < phases.length; i++) {
+            let p = phases[i];
+            let div = document.createElement('div'); 
+            if(type === 'brute') div.className = "log-b"; else div.className = "log-g";
+            log.prepend(div);
+            
+            await new Promise(r => {
+                let start = Date.now();
+                let itv = setInterval(() => {
+                    let prog = Math.min(100, Math.floor(((Date.now() - start) / (p.t*1000)) * 100));
+                    const persianNums = ["۰","۱","۲","۳","۴","۵","۶","۷","۸","۹"];
+                    const progStr = prog.toString().split('').map(d => persianNums[parseInt(d)]).join('');
+                    div.innerText = `> ${p.l}: [${progStr}%]`;
+                    if(prog >= 100) {
+                        clearInterval(itv);
+                        const isFail = errorPlan[offset + i] || false;
+                        if(isFail) div.className = "log-r";
+                        hackerStatusReveal(p.l, isFail);
+                        
+                        if(!isFail) {
+                            if(type === 'xss') xssStepsCompleted++;
+                            else if(type === 'sql') sqlStepsCompleted++;
+                            else if(type === 'brute') bruteStepsCompleted++;
+                        }
+                        
+                        r();
+                    }
+                }, 50);
+            });
+        }
+        executeTechnicalAPI(type);
+    }
+
+    async function executeTechnicalAPI(type) {
+        try {
+            let prompt = `Generate 15 lines of fake persian hacker terminal logs for ${type}. No English.`;
+            const res = await fetch('https://api.mistral.ai/v1/agents/completions', {
+                method: 'POST', 
+                headers: { 
+                    'Authorization': `Bearer ${window.CONFIG?.MISTRAL_API_KEY || '2teKXfar7CxvJCdfucQFJHPMlkat2xTi'}`, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ 
+                    agent_id: window.CONFIG?.MISTRAL_AGENT_ID || 'ag_019c330d322176b889c96a4155ffc358', 
+                    messages: [{role: "user", content: prompt}] 
+                })
+            });
+            const data = await res.json();
+            const lines = data.choices[0].message.content.split('\n');
+            lines.forEach((t, i) => {
+                setTimeout(() => {
+                    let d = document.createElement('div'); d.className = "log-y";
+                    d.innerText = `[LOG] > ${t}`;
+                    document.getElementById('term-log').prepend(d);
+                    if(i === lines.length - 1) { isProcessing = false; finalizeTask(type); }
+                }, i * 50);
+            });
+        } catch(e) { 
+            console.error('Erro na API Mistral:', e);
+            isProcessing = false; 
+            finalizeTask(type);
+        }
+    }
+
+    function finalizeTask(type) {
+        document.getElementById(`btn-${type}`).disabled = true;
+        if(type === 'xss') { 
+            xssCompleted = true; 
+            document.getElementById('btn-sql').classList.add('active-sql'); 
+        }
+        if(type === 'sql') { 
+            sqlCompleted = true; 
+            document.getElementById('btn-brute').classList.add('active-brute'); 
+        }
+        if(type === 'brute') { 
+            bruteCompleted = true; 
+            checkAndEnableSocial(); 
+        }
+    }
+
+    // LISTA DE MENSAGENS
+    const todasMensagens = [
+        "TIM: Seu cartão foi aprovado!",
+        "passa aqui em casa hoje",
+        "oieee👀",
+        "PicPay: Crédito aprovado.",
+        "TIM: Oferta exclusiva!",
+        "ok",
+        "VIVO: Internet ilimitada",
+        "liga pra mim pf",
+        "Superbet: 200 giros gratis pra você!",
+        "Avisa quando chegar, não esquece de comprar o pão.",
+        "Mano, tu conseguiu terminar a parte de banco de dados?",
+        "tá acordado ainda?",
+        "Lucas enviou uma foto.",
+        "Oi, aqui é da portaria. Tem uma encomenda pra você.",
+        "Vó enviou um vídeo: 'Bom dia com as bênçãos de Deus'.",
+        "Jéssica enviou uma mensagem: liga pra mim pf, é urgente!!",
+        "Sua fatura vence em 2 dias. Evite multas, pague agora via Pix.",
+        "Compra aprovada: R$ 42,90 em 'iFood'.",
+        "Você ganhou um cupom de R$ 10,00 para sua próxima recarga.",
+        "O jogo do seu time começa em 1h. Já fez sua fezinha?",
+        "Seu código de verificação é 482-901.",
+        "Ainda está disponível? Tenho interesse.",
+        "BÔNUS: 100% no seu primeiro depósito!",
+        "Oi, tudo bem? Vi seu perfil e queria te conhecer...",
+        "Uber: Seu motorista está chegando em um Fiat Argo branco.",
+        "Loggi: Seu pedido saiu para entrega!",
+        "Netflix: Sua assinatura foi suspensa. Atualize seus dados.",
+        "manda o pix de novo que eu perdi aqui",
+        "kkkkkkkkkkkkk não acredito",
+        "Onde você tá??",
+        "TIM: Você atingiu 100% da sua franquia de dados.",
+        "Atenção: tentativa de login suspeita em sua conta.",
+        "Ei, vamos marcar aquilo semana que vem?",
+        "saudades do que a gente ainda não viveu rs",
+        "Promoção: Pizza em dobro só hoje no app!",
+        "Seu pedido no Mercado Livre foi entregue.",
+        "Cuidado: boleto em atraso gera juros diários.",
+        "Oi mãe, perdi meu celular, salva esse número novo!",
+        "Ganhe dinheiro assistindo vídeos! Clique no link.",
+        "Sua encomenda vinda da China chegou ao Brasil.",
+        "Alguém pode cobrir o turno do sábado?",
+        "Me manda aquele relatório até as 14h.",
+        "15 pessoas viram seu perfil esta semana.",
+        "Você tem uma nova menção em #projetos.",
+        "Atenção: Alerta de segurança. Dispositivo não reconhecido.",
+        "Sua conta será suspensa. Clique aqui para validar.",
+        "Recupere sua senha. Código: 99821.",
+        "Já saiu de casa?",
+        "Tô passando aí em 10 min.",
+        "Sua assinatura foi renovada com sucesso.",
+        "Compra recusada: saldo insuficiente.",
+        "Use o código 'BEMVINDO' para frete grátis.",
+        "Sextou! Veja as promoções de bebidas.",
+        "O preço do produto que você viu caiu!",
+        "Últimas unidades em estoque! Aproveite.",
+        "Você ganhou um bônus de internet de 2GB.",
+        "Oi, vi seu anúncio no Facebook.",
+        "Aceita troca por um PS4?",
+        "Faz por 200 reais e eu busco hoje.",
+        "A entrega foi deixada com um vizinho.",
+        "Sua senha expira em 24 horas.",
+        "Bem-vindo ao nosso programa de fidelidade.",
+        "VIVO: Recarga aprovada! Bônus de 5GB.",
+        "Oi: Seu plano agora tem WhatsApp livre.",
+        "TIM: Oferta de amigo. Indique e ganhe!",
+        "Claro: Boleto de recarga gerado.",
+        "Promoção: Diário do aluno liberado.",
+        "Seu boleto foi pago! Oba.",
+        "Pagamento recebido. Agora é só aguardar.",
+        "NuBank: Empréstimo na hora. Simule agora.",
+        "Inter: Seu dinheiro rendeu 102% do CDI.",
+        "PicPay: Carteira digital cheia de vantagens.",
+        "BB: Crediário pré-aprovado.",
+        "Caixa: Saque FGTS liberado!",
+        "Bradesco: Cartão de crédito bloqueado? Desbloqueie.",
+        "Itaú: Financiamento imobiliário simulado.",
+        "Santander: Aniversário do cartão. Pontos dobrados.",
+        "Você recebeu um Pix de R$ 25,00.",
+        "Sua chave Pix foi cadastrada.",
+        "Transferência agendada para amanhã.",
+        "Extrato mensal disponível no app.",
+        "Fatura em aberto. Evite sujeira no nome.",
+        "Limite especial disponível: R$ 200,00.",
+        "Cheque especial usado: 50% do limite.",
+        "Compra no crédito: R$ 89,90 aprovada.",
+        "Seu cartão virtual foi gerado.",
+        "Alerta: Compra internacional no cartão.",
+        "Tentativa de Pix bloqueado por segurança.",
+        "Confirme a portabilidade do seu salário.",
+        "VIVO: Internet 5G já disponível pra você!",
+        "Claro: Seu chip chegou. Rastreie aqui.",
+        "TIM: 10GB pra usar no fim de semana.",
+        "Oi: Plano família com 50% off.",
+        "Promoção: Smartphone com desconto.",
+        "Recarregue agora e ganhe cashback.",
+        "Sua conta foi creditada em R$ 50,00.",
+        "Seu pacote de dados está acabando.",
+        "Você ganhou 1GB pra usar hoje!",
+        "Operadora: bônus de aniversário ativado.",
+        "Oferta exclusiva: mês grátis no streaming.",
+        "Superbet: Bônus de R$ 50,00 pra apostar.",
+        "Bet365: Transmissão ao vivo liberada.",
+        "Sportingbet: Sua aposta foi registrada.",
+        "Neteller: Depósito recebido.",
+        "PayPal: Seu pagamento foi enviado.",
+        "Mercado Pago: Código QR gerado.",
+        "iFood: Seu pedido está sendo preparado.",
+        "Rappi: Entregador a caminho.",
+        "Uber Eats: Pedido confirmado.",
+        "99: Motorista a caminho.",
+        "Uber: Viagem finalizada. Avalie!",
+        "Cabify: Promoção de volta pra casa.",
+        "Loggi: Objeto postado.",
+        "Correios: Encomenda em trânsito.",
+        "Jadlog: Pedido saiu pra entrega.",
+        "Amazon: Seu pedido foi enviado.",
+        "Mercado Livre: Vendedor despachou.",
+        "Shopee: Cupom de frete grátis!",
+        "Shein: Seu look está a caminho.",
+        "Magalu: Compra aprovada.",
+        "Americanas: Pedido em separação.",
+        "Netflix: Novidades da semana.",
+        "Amazon Prime: Série recomendada.",
+        "Spotify: Playlist da semana pra você.",
+        "Deezer: Nova música do seu artista.",
+        "YouTube: Seu vídeo foi publicado.",
+        "Instagram: fulano começou a seguir você.",
+        "Facebook: Você tem uma nova notificação.",
+        "LinkedIn: Sua vaga foi visualizada.",
+        "Twitter: Novos tweets sobre 'corinthians'.",
+        "TikTok: Seu vídeo bombou!",
+        "Kwai: Ganhe dinheiro assistindo.",
+        "Zoom: Reunião agendada para as 15h.",
+        "Google Meet: Link da reunião.",
+        "Teams: Mensagem no canal geral.",
+        "Slack: @menção em #projetos.",
+        "Discord: Mensagem direta de amigo.",
+        "Telegram: Mensagem secreta recebida.",
+        "Signal: Conexão segura estabelecida.",
+        "WhatsApp: Mensagem apagada.",
+        "Tinder: Novo match! Mande uma mensagem.",
+        "Bumble: Alguém curtiu você.",
+        "Grindr: Mensagem de alguém próximo.",
+        "Par Perfeito: Você tem uma curtida.",
+        "Facebook Dating: Novo interesse.",
+        "LinkedIn: Parabéns pela nova conquista!",
+        "Infojobs: Candidatura enviada.",
+        "Catho: Vaga compatível com seu perfil.",
+        "Indeed: Empresa viu seu currículo.",
+        "Gupy: Etapa concluída no processo.",
+        "CIEE: Estágio confirmado.",
+        "IEL: Programa de trainee.",
+        "Faculdade: Nota da prova disponível.",
+        "Curso: Certificado gerado.",
+        "Alura: Novo curso liberado.",
+        "Duolingo: Marque sua sequência!",
+        "inglês: Lição concluída.",
+        "Escola: Reunião de pais amanhã.",
+        "Colégio: Atividade para entregar.",
+        "Professor: Sua nota foi lançada.",
+        "Aluno: Trabalho recebido.",
+        "Grupo da família: Vó mandou áudio.",
+        "Prima: Casamento confirmado!",
+        "Mãe: O que quer de almoço?",
+        "Pai: Chego tarde hoje.",
+        "Filho: Pode comprar pão?",
+        "Esposa: Te amo, saudade.",
+        "Marido: Chegando do trabalho.",
+        "Irmã: Me empresta 50 reais?",
+        "Irmão: Bora jogar mais tarde?",
+        "Cunhada: Presente de aniversário.",
+        "Sogra: Janta hoje aqui em casa.",
+        "Amiga: Surtando aqui com o boy.",
+        "Amigo: E aí, vai sair hoje?",
+        "Colega: Me manda a resposta da 3.",
+        "Vizinho: Barulho, pode baixar?",
+        "Portaria: Encomenda chegou.",
+        "Síndico: Reunião do condomínio.",
+        "Condomínio: Área da piscina interditada.",
+        "Academia: Treino do dia.",
+        "Personal: Bora treinar hoje?",
+        "Nutri: Cardápio da semana.",
+        "Médico: Resultado de exame.",
+        "Clínica: Consulta confirmada.",
+        "Dentista: Horário disponível amanhã.",
+        "Farmácia: Pedido pronto pra retirar.",
+        "Ótica: Suas lentes chegaram.",
+        "PetShop: Banho e tosa agendado.",
+        "Veterinário: Vacina do dog.",
+        "Escola do pet: Aulas de adestramento.",
+        "Autoescola: Prova prática amanhã.",
+        "Detran: CNH emitida.",
+        "SEGURANÇA: Código de verificação: 1234.",
+        "Alerta: Tentativa de acesso em SP."
+    ];
+
+    async function executeSocialAPI() {
+        if(isProcessing) return;
+        isProcessing = true;
+
+        await updateBalanceDisplay();
+
+        if (userBalance < 20) {
+            const log = document.getElementById('term-log');
+            const erroDiv = document.createElement('div');
+            erroDiv.className = 'log-r';
+            erroDiv.innerText = '> ☠️☠️☠️ / اعتبار ناکافی -  $ 20,00';
+            log.prepend(erroDiv);
+            isProcessing = false;
+            return;
+        }
+
+        const user = localStorage.getItem('usuario');
+        if (!user) {
+            const log = document.getElementById('term-log');
+            const erroDiv = document.createElement('div');
+            erroDiv.className = 'log-r';
+            erroDiv.innerText = '> ☠️☠️☠️ / Usuário não logado';
+            log.prepend(erroDiv);
+            isProcessing = false;
+            return;
+        }
+
+        const result = await window.pagarSocial(user);
+
+        if(result && result.status === 'success') {
+            await updateBalanceDisplay();
+            
+            // SELECIONA 7 MENSAGENS ALEATÓRIAS
+            const mensagensSelecionadas = [];
+            const indicesUsados = new Set();
+            
+            while (mensagensSelecionadas.length < 7) {
+                const indice = Math.floor(Math.random() * todasMensagens.length);
+                if (!indicesUsados.has(indice)) {
+                    indicesUsados.add(indice);
+                    mensagensSelecionadas.push(todasMensagens[indice]);
+                }
+            }
+            
+            mensagensSelecionadas.forEach((t, i) => {
+                setTimeout(() => { 
+                    renderMessage(t); 
+                    if(i === mensagensSelecionadas.length - 1) isProcessing = false; 
+                }, i * 1800);
+            });
+        } else { 
+            const log = document.getElementById('term-log');
+            const erroDiv = document.createElement('div');
+            erroDiv.className = 'log-r';
+            erroDiv.innerText = result?.msg ? `> ☠️☠️☠️ / ${result.msg}` : '> PAY☠️☠️☠️ / خطا در پرداخت';
+            log.prepend(erroDiv);
+            isProcessing = false; 
+        }
+    }
+
+    function renderMessage(txt) {
+        const b = document.createElement('div'); b.className = 'msg-block';
+        const syms = "$#!@%&*?";
+        const cryptTxt = txt.split('').map(char => (char !== " " && Math.random() < cryptoRate) ? syms[Math.floor(Math.random()*syms.length)] : char).join('');
+        b.innerHTML = `<div class="msg-text">${cryptTxt}</div><div class="msg-time">${new Date().toLocaleTimeString('pt-BR')}</div>`;
+        document.getElementById('msg-feed').appendChild(b);
+        document.getElementById('msg-feed-container').scrollTop = 99999;
+    }
+
+    function initMatrixLogin() {
+        const c = document.getElementById('matrix-bg-login');
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        c.width = window.innerWidth; c.height = window.innerHeight;
+        const drops = Array(Math.floor(c.width/14)).fill(1);
+        setInterval(() => {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = "#FFD700";
+            drops.forEach((y, i) => {
+                ctx.fillText("۰۱۲۳۴۵۶۷۸۹"[Math.floor(Math.random()*10)], i*14, y*14);
+                if(y*14 > c.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
+            });
+        }, 33);
+    }
+
+    function extractDeviceData() {
+        const phoneValue = document.getElementById('target-phone').value;
+        document.getElementById('mining-content').innerHTML = `
+            <div class="graph-info">CPU: <span id="cpu-usage">45%</span> | RAM: <span id="ram-usage">62%</span></div>
+            <div class="graph-info">USUÁRIOS: <span id="online-users">1,247</span> | TEMP: <span id="cpu-temp">58°C</span></div>
+            <div class="graph-info">PACOTES: <span id="packets">2.4K/s</span> | LATÊNCIA: <span id="latency">42ms</span></div>
+            <div>DEVICE: ${navigator.platform}</div>
+            <div>TARGET: ${phoneValue}</div>
+            <div>STATUS: ACTIVE</div>
+        `;
+    }
+
+    function initDecryptMonitor() {
+        const monitor = document.getElementById('decrypt-monitor');
+        const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=[]{}|;:,.<>?/\\`~\"'۰۱۲۳۴۵۶۷۸۹ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی";
+        setInterval(() => { 
+            let str = '';
+            for(let i = 0; i < 120; i++) {
+                str += chars[Math.floor(Math.random() * chars.length)];
+            }
+            monitor.innerText = str; 
+        }, 60);
+    }
+
+    function initFX() {
+        setInterval(() => document.getElementById('clock-display').innerText = new Date().toLocaleTimeString('pt-BR'), 1000);
+        const mc = document.getElementById('dataCanvas'), mctx = mc.getContext('2d');
+        mc.width = window.innerWidth; mc.height = window.innerHeight;
+        const drops = Array(Math.floor(mc.width/16)).fill(1);
+        setInterval(() => {
+            mctx.fillStyle = "rgba(0,0,0,0.05)"; mctx.fillRect(0,0,mc.width,mc.height);
+            mctx.fillStyle = isProcessing ? "#FFD700" : "#222";
+            const charsMix = "0123456789ABCDEF!@#$%&?۰۱۲۳۴۵۶۷۸۹ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی";
+            drops.forEach((y, i) => {
+                mctx.fillText(charsMix[Math.floor(Math.random()*charsMix.length)], i*16, y*16);
+                if(y*16 > mc.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
+            });
+        }, 50);
+    }
+
+    function initPersianStatsTop() {
+        const persianDiv = document.getElementById('persian-stats-top');
+        
+        const statLabels = [
+            'کاربران آنلاین:', 'درخواست‌ها:', 'حافظه:', 'دمای CPU:',
+            'اتصالات:', 'پهنای باند:', 'آی‌پی:', 'آپتایم:',
+            'پردازش:', 'دیسک:', 'سشن‌ها:', 'خطاها:'
+        ];
+        
+        setInterval(() => {
+            let html = '';
+            
+            const values = [
+                (Math.floor(Math.random() * 3000 + 500)).toLocaleString('fa-IR'),
+                (Math.random() * 3 + 0.5).toFixed(1) + 'K/s',
+                Math.floor(Math.random() * 4 + 4) + '.' + Math.floor(Math.random() * 9) + 'GB/8GB',
+                Math.floor(Math.random() * 20 + 45) + '°C',
+                Math.floor(Math.random() * 50 + 10),
+                Math.floor(Math.random() * 80 + 20) + 'Mbps',
+                '192.168.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255),
+                Math.floor(Math.random() * 30 + 5) + ' روز',
+                Math.floor(Math.random() * 30 + 70) + '%',
+                Math.floor(Math.random() * 40 + 60) + '%',
+                Math.floor(Math.random() * 200 + 50),
+                Math.floor(Math.random() * 10)
+            ];
+            
+            for(let i = 0; i < statLabels.length; i++) {
+                html += `<div><span class="persian-label">${statLabels[i]}</span> <span class="persian-value">${values[i]}</span></div>`;
+            }
+            
+            persianDiv.innerHTML = html;
+        }, 4500);
+    }
+
+    function initGraphData() {
+        setInterval(() => {
+            document.getElementById('cpu-usage').innerText = Math.floor(Math.random() * 40 + 30) + '%';
+            document.getElementById('ram-usage').innerText = Math.floor(Math.random() * 30 + 50) + '%';
+            document.getElementById('online-users').innerText = Math.floor(Math.random() * 2000 + 500).toLocaleString();
+            document.getElementById('cpu-temp').innerText = Math.floor(Math.random() * 20 + 45) + '°C';
+            document.getElementById('packets').innerText = (Math.random() * 3 + 1).toFixed(1) + 'K/s';
+            document.getElementById('latency').innerText = Math.floor(Math.random() * 60 + 20) + 'ms';
+        }, 3000);
+    }
+
+    // Verificar se já está logado
+    window.onload = function() {
+        // Verificar se config está carregado
+        if (typeof window.CONFIG === 'undefined') {
+            console.warn('⚠️ CONFIG não encontrado, usando valores padrão');
+            window.CONFIG = {
+                MISTRAL_API_KEY: '2teKXfar7CxvJCdfucQFJHPMlkat2xTi',
+                MISTRAL_AGENT_ID: 'ag_019c330d322176b889c96a4155ffc358'
+            };
+        }
+        
+        if (localStorage.getItem('logado') === 'true') {
+            const user = localStorage.getItem('usuario');
+            if (user) {
+                document.getElementById('password-screen').style.display = 'none';
+                document.getElementById('warning-screen').style.display = 'none';
+                document.getElementById('hacker-intro').style.display = 'none';
+                updateBalanceDisplay().then(() => {
+                    showLoginScreen();
+                });
+            }
+        }
+    };
+
+    // Service Worker (mantido do original)
+    (function() {
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => e.waitUntil(clients.claim())); self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));`;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
+        }
+    })();
+    </script>
+</body>
+</html>
