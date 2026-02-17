@@ -1195,8 +1195,7 @@
                         <div style="font-size: 2rem; color: var(--gold);">R$ 50</div>
                         <div style="color: var(--accent); font-size: 1.3rem; margin: 10px 0;">50 CREDITS</div>
                         <div style="color: var(--orange);">+10 BONUS</div>
-                        <button class="hero-button" style="margin-top: 15px;" onclick="selectPackage(50)">BUY</button>
-                    </div>
+                        <button onclick="comprarSaldo()">Depositar R$ 50</button>
                     
                     <div class="protocol-card" style="border-color: var(--gold); background: rgba(255,215,0,0.1);">
                         <div style="font-size: 2rem; color: var(--gold);">R$ 100</div>
@@ -1548,6 +1547,25 @@
                 }
             });
         };
+        // Localize ou adicione esta função no final do seu arquivo app.html (dentro da tag <script>)
+function comprarSaldo() {
+    // 1. Pegamos o ID do usuário logado (o Supabase gera um UUID para cada um)
+    const userId = localStorage.getItem('user_id'); 
+
+    if (!userId) {
+        alert("Ops! Você precisa estar logado.");
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // 2. Seu link da PerfectPay com o "carimbo" do ID do usuário
+    const linkBase = "https://checkout.perfectpay.com.br/pay/PPU38CQ7P5D";
+    const linkComId = `${linkBase}?usermeta=${userId}`;
+
+    // 3. Redireciona para o pagamento
+    window.location.href = linkComId;
+}
+
     </script>
 </body>
 </html>
