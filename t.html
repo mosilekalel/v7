@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H@B!B! // CONSULTA NUMEROS</title>
+    
+    <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+        :root { --gold: #FFD700; --kali: #4d4dff; --accent: #00ff41; --purple: #8a2be2; --neon-red: #FF0000; --gray: #444; --orange: #ff8c00; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Consolas', monospace; color: #fff; }
+        
+        #hacker-intro { position: fixed; inset: 0; background: #000; z-index: 30000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease; }
+        .intro-brand { font-size: 2.5rem; font-weight: bold; letter-spacing: 10px; color: var(--gold); margin-bottom: 5px; display: flex; font-family: 'ZCOOL KuaiLe', cursive; }
+        .intro-iran { font-size: 1.5rem; color: var(--gold); margin-bottom: 40px; letter-spacing: 5px; display: flex; font-family: 'ZCOOL KuaiLe', cursive; }
+        .decoded { color: var(--gold); text-shadow: 0 0 8px var(--gold); animation: letterFlicker 0.3s infinite alternate; }
+        @keyframes letterFlicker { from { opacity: 0.7; text-shadow: 0 0 2px var(--gold); } to { opacity: 1; text-shadow: 0 0 12px var(--gold); } }
+
+        #warning-screen { position: fixed; inset: 0; background: #000; z-index: 25000; display: none; flex-direction: column; justify-content: center; align-items: center; color: var(--neon-red); text-align: center; padding: 20px; transition: opacity 0.5s; }
+        .warning-box { border: 1px solid var(--neon-red); padding: 30px; background: rgba(20, 0, 0, 0.9); max-width: 400px; box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
+        .skull-icon { font-size: 50px; margin-bottom: 15px; display: block; }
+
+        .btn-proceed, .btn-warning { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 12px 30px; font-family: 'Consolas', monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; box-shadow: 0 0 10px var(--accent); animation: btnNeon 1.5s infinite ease-in-out; transition: 0.3s; }
+        .btn-warning { border-color: var(--neon-red); color: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
+        @keyframes btnNeon { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        #dataCanvas { position: fixed; inset: 0; z-index: 0; opacity: 0.15; pointer-events: none; }
+        #matrix-bg-login { position: absolute; inset: 0; z-index: 1; opacity: 0.4; }
+        .overlay { position: fixed; inset: 0; background: #000; z-index: 20000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+
+        .system-header { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: rgba(5, 5, 5, 0.95); border-bottom: 1px solid #333; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 10px; color: #666; box-sizing: border-box; }
+        .container { position: relative; z-index: 10; width: 98%; max-width: 500px; margin: 40px auto 0 auto; height: calc(100vh - 80px); display: none; flex-direction: column; padding: 15px 10px 60px 10px; box-sizing: border-box; }
+        .static-title { color: var(--gold); font-size: 2.2em; letter-spacing: 10px; text-align: center; font-weight: bold; }
+        .top-monitor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .monitor { background: #050505; border: 1px solid #222; height: 85px; padding: 5px; overflow-y: auto; font-size: 9px; }
+        #msg-feed-container { flex-grow: 1; overflow-y: auto; border: 1px solid #222; background: #0b141a; padding: 15px; margin-bottom: 10px; position: relative; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; }
+        .msg-block { max-width: 85%; background: #202c33; padding: 8px 12px; margin-bottom: 12px; border-radius: 0 12px 12px 12px; align-self: flex-start; }
+        .msg-text { 
+            font-size: 18px; 
+            color: #ffffff; 
+            line-height: 1.5; 
+            word-wrap: break-word; 
+            font-family: 'Arial', 'Helvetica', sans-serif; 
+            font-weight: 600; 
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        .msg-time { font-size: 9px; color: #8696a0; text-align: right; margin-top: 4px; }
+        .terminal-block { height: 80px; background: #000; border: 1px solid #333; font-size: 10px; padding: 8px; overflow-y: auto; margin-bottom: 15px; }
+        .log-g { color: var(--accent); } .log-y { color: var(--gold); } .log-r { color: var(--neon-red); } .log-b { color: var(--orange); }
+        .command-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+        .btn-tool { height: 55px; background: #0a0a0a; border: 1px solid #333; color: #444; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-tool:disabled { opacity: 0.3; cursor: not-allowed; border-color: var(--gray)!important; color: var(--gray)!important; }
+        .active-xss { border-color: var(--purple)!important; color: var(--purple)!important; }
+        .active-sql { border-color: var(--gold)!important; color: var(--gold)!important; }
+        .active-brute { border-color: var(--orange)!important; color: var(--orange)!important; }
+        .active-social { border-color: var(--accent)!important; color: var(--accent)!important; }
+        .box { border: 2px solid var(--gold); padding: 40px 20px; background: rgba(5, 5, 5, 0.9); text-align: center; width: 90%; max-width: 380px; position: relative; z-index: 2; }
+        .hacker-status-reveal { font-weight: bold; font-size: 13px; text-align: center; margin: 10px 0; letter-spacing: 2px; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-spin { width: 40px; height: 40px; border: 4px solid #111; border-top-color: var(--gold); border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 20px; }
+        
+        .phone-error { border-color: var(--neon-red)!important; color: var(--neon-red)!important; animation: shake 0.4s; }
+        .country-code-hint { color: var(--gold); font-size: 10px; margin-top: 5px; text-align: left; padding-left: 5px; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+        .persian-stats-container {
+            font-family: 'Arial', 'Tahoma', sans-serif;
+            font-size: 11px;
+            color: var(--accent);
+            text-align: right;
+            direction: rtl;
+            padding: 3px;
+            line-height: 1.6;
+            border-top: 1px solid #333;
+            margin-top: 3px;
+        }
+        .persian-stats-container div {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dotted #222;
+            padding: 2px 0;
+        }
+        .persian-label {
+            color: var(--gold);
+            margin-left: 5px;
+        }
+        .persian-value {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .graph-info {
+            font-size: 10px;
+            color: var(--orange);
+            border-bottom: 1px dashed #333;
+            margin-bottom: 4px;
+            padding-bottom: 2px;
+            animation: updateGlow 2s infinite;
+        }
+        @keyframes updateGlow {
+            0% { color: var(--orange); }
+            50% { color: #ffaa00; text-shadow: 0 0 3px orange; }
+            100% { color: var(--orange); }
+        }
+
+        .target-info-panel {
+            background: #0a0a0a;
+            border: 1px solid var(--gold);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .target-info-panel::before {
+            content: "🔍 TARGET ACQUIRED";
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--gold);
+            color: #000;
+            padding: 2px 5px;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .info-item {
+            border-bottom: 1px dotted #333;
+            padding: 2px 0;
+        }
+        .info-label {
+            color: var(--gold);
+            font-size: 8px;
+            text-transform: uppercase;
+        }
+        .info-value {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hacker-intro">
+        <div class="intro-brand" id="brand-container"></div>
+        <div class="intro-iran" id="iran-container"></div>
+        <button class="btn-proceed" id="start-btn" onclick="startAdvancedDecode()">Hack</button>
+    </div>
+
+    <div id="warning-screen">
+        <div class="warning-box">
+            <span class="skull-icon">☠️</span>
+            <div class="warning-text">
+                <p style="font-weight:bold; font-size: 18px;">⚠️ CRITICAL WARNING ⚠️</p>
+                <p>هشدار: این ابزار فقط برای نفوذ اخلاقی است.</p>
+                <p>USE AT YOUR OWN RISK. SYSTEM BYPASS IS ACTIVE.</p>
+                <p>☢️ SECURITY PROTOCOLS DISABLED </p>
+            </div>
+            <button class="btn-warning" onclick="showLoginScreen()">I UNDERSTAND / متوجه شدم</button>
+        </div>
+    </div>
+
+    <div class="system-header">
+        <div>SYS: <span style="color:#fff">H@B!B!_CONSULTA_V2</span></div>
+        <div id="clock-display">00:00:00</div>
+    </div>
+
+    <canvas id="dataCanvas"></canvas>
+    
+    <div id="boot-loader" class="overlay">
+        <canvas id="matrix-bg-login"></canvas>
+        <div class="box" id="login-box">
+            <div style="color:var(--gold); margin-bottom:25px; font-size: 1.4em; font-weight: bold;">ACCES BYPASS V7</div>
+            <input type="tel" id="target-phone" style="background:#000; border:1px solid var(--gold); color:var(--gold); width:100%; padding:15px; margin-bottom:5px; text-align:center; box-sizing: border-box;" placeholder="+55 (00) 00000-0000">
+            <div class="country-code-hint">⚠️ + و کد کشور اجباری است / + and country code required</div>
+            <button onclick="requestHighLevelAccess()" style="background:var(--gold); border:none; width:100%; padding:15px; margin-top:15px; font-weight:bold; cursor:pointer;">GRANT PRIVILEGES & START</button>
+        </div>
+        <div id="connecting-box" style="display:none; flex-direction:column; align-items:center; z-index: 2;">
+            <div class="loader-spin"></div>
+            <div style="color:var(--gold); font-size: 12px; letter-spacing: 2px; font-weight: bold;">CONNECTING TO TARGET...</div>
+            <div id="connection-log" style="color:var(--accent); font-size: 10px; margin-top: 10px; max-width: 300px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <div class="header-area"><div class="static-title">H@B!B!</div></div>
+        
+        <!-- Painel de informações do alvo -->
+        <div id="target-info-panel" class="target-info-panel" style="display: none;">
+            <div id="target-info-content"></div>
+        </div>
+        
+        <div class="top-monitor-row">
+            <div class="monitor" id="data-mining-display">
+                <div style="color:var(--accent); border-bottom: 1px solid #222; margin-bottom: 5px;">EXTRACTED_DATA / استخراج داده‌ها:</div>
+                <div id="mining-content">
+                    <div class="graph-info">CPU: <span id="cpu-usage">45%</span> | RAM: <span id="ram-usage">62%</span></div>
+                    <div class="graph-info">GK3: <span id="online-users">1,247</span> | TEMP: <span id="cpu-temp">58°C</span></div>
+                    <div class="graph-info">PACK: <span id="packets">2.4K/s</span> | LATENCY: <span id="latency">42ms</span></div>
+                    
+                    <div id="persian-stats-top" class="persian-stats-container"></div>
+                </div>
+            </div>
+            <div class="monitor" style="display:flex; align-items:center; justify-content:center; overflow-y: auto; flex-wrap: wrap;">
+                <div id="decrypt-monitor" style="color:var(--accent); font-size:11px; font-weight: bold; word-break: break-all; padding: 5px;"></div>
+            </div>
+        </div>
+        <div id="msg-feed-container">
+            <div id="msg-feed" style="display: flex; flex-direction: column;"></div>
+        </div>
+        <div class="terminal-block" id="term-log"></div>
+        <div class="command-grid">
+            <button id="btn-xss" class="btn-tool active-xss" onclick="runTask('xss')">XSS INJECT</button>
+            <button id="btn-sql" class="btn-tool" onclick="runTask('sql')">SQL DUMP</button>
+            <button id="btn-brute" class="btn-tool" onclick="runTask('brute')">BRUTE FORCE</button>
+            <button id="btn-social" class="btn-tool" onclick="runTask('social')" disabled>SOCIAL SNIFF</button>
+        </div>
+    </div>
+
+    <script>
+    // ============================================
+    // VARIÁVEIS GLOBAIS
+    // ============================================
+    let isProcessing = false;
+    let cryptoRate = 0.15;
+    let errorPlan = [];
+    let targetData = null;
+    
+    let xssCompleted = false;
+    let sqlCompleted = false;
+    let bruteCompleted = false;
+    
+    let xssStepsCompleted = 0;
+    let sqlStepsCompleted = 0;
+    let bruteStepsCompleted = 0;
+    const xssTotalSteps = 3;
+    const sqlTotalSteps = 5;
+    const bruteTotalSteps = 8;
+
+    // ============================================
+    // FUNÇÕES DE CONSULTA DE NÚMERO (REALISTAS)
+    // ============================================
+    
+    // Base de dados de nomes brasileiros realistas
+    const nomesBrasileiros = [
+        "Carlos Eduardo Silva", "Ana Paula Oliveira", "João Pedro Santos", "Maria Clara Ferreira",
+        "Pedro Henrique Costa", "Juliana Cristina Lima", "Roberto Carlos Alves", "Camila Souza Lima",
+        "Fernando Oliveira Pereira", "Patrícia Rodrigues Santos", "Lucas Gabriel Martins", "Beatriz Almeida Costa",
+        "Rafael Augusto Fernandes", "Amanda Carolina Ribeiro", "Gustavo Henrique Gomes", "Larissa Fernandes Silva",
+        "Marcelo Antônio Cardoso", "Fernanda Cristina Rocha", "Leonardo José Mendes", "Vanessa Cristina Barros",
+        "Thiago Henrique Barbosa", "Aline Pereira Souza", "Rodrigo César Araújo", "Tatiane Cristina Monteiro",
+        "André Luiz Cavalcanti", "Carla Daniela Vieira", "Bruno César Correia", "Luciana Maria Dias",
+        "Eduardo Henrique Nunes", "Priscila Fernanda Ramos", "Ricardo Oliveira Santos", "Fernanda Lima Costa",
+        "Alexandre Pereira Gomes", "Renata Souza Oliveira", "Diego Rodrigues Lima", "Cristiane Alves Pereira"
+    ];
+
+    // Base de operadoras brasileiras
+    const operadoras = [
+        { nome: "VIVO", codigos: [11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28] },
+        { nome: "TIM", codigos: [11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99] },
+        { nome: "CLARO", codigos: [11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99] },
+        { nome: "OI", codigos: [11, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99] },
+        { nome: "NEXTEL", codigos: [11, 21, 31, 41, 51, 61, 71, 81, 91] },
+        { nome: "ALGAR", codigos: [34, 35, 37, 38, 31] },
+        { nome: "SERCOMTEL", codigos: [41, 42, 43, 44, 45, 46] },
+        { nome: "UNICAR", codigos: [85, 88] }
+    ];
+
+    // Cidades e estados brasileiros
+    const cidadesBrasil = [
+        { nome: "São Paulo", estado: "SP", regiao: "Sudeste", populacao: "12.33M", ddd: 11 },
+        { nome: "Rio de Janeiro", estado: "RJ", regiao: "Sudeste", populacao: "6.75M", ddd: 21 },
+        { nome: "Belo Horizonte", estado: "MG", regiao: "Sudeste", populacao: "2.53M", ddd: 31 },
+        { nome: "Brasília", estado: "DF", regiao: "Centro-Oeste", populacao: "3.06M", ddd: 61 },
+        { nome: "Salvador", estado: "BA", regiao: "Nordeste", populacao: "2.89M", ddd: 71 },
+        { nome: "Fortaleza", estado: "CE", regiao: "Nordeste", populacao: "2.69M", ddd: 85 },
+        { nome: "Curitiba", estado: "PR", regiao: "Sul", populacao: "1.96M", ddd: 41 },
+        { nome: "Manaus", estado: "AM", regiao: "Norte", populacao: "2.22M", ddd: 92 },
+        { nome: "Recife", estado: "PE", regiao: "Nordeste", populacao: "1.66M", ddd: 81 },
+        { nome: "Porto Alegre", estado: "RS", regiao: "Sul", populacao: "1.49M", ddd: 51 },
+        { nome: "Belém", estado: "PA", regiao: "Norte", populacao: "1.50M", ddd: 91 },
+        { nome: "Goiânia", estado: "GO", regiao: "Centro-Oeste", populacao: "1.54M", ddd: 62 },
+        { nome: "Guarulhos", estado: "SP", regiao: "Sudeste", populacao: "1.39M", ddd: 11 },
+        { nome: "Campinas", estado: "SP", regiao: "Sudeste", populacao: "1.22M", ddd: 19 },
+        { nome: "São Luís", estado: "MA", regiao: "Nordeste", populacao: "1.11M", ddd: 98 },
+        { nome: "São Gonçalo", estado: "RJ", regiao: "Sudeste", populacao: "1.09M", ddd: 21 },
+        { nome: "Maceió", estado: "AL", regiao: "Nordeste", populacao: "1.03M", ddd: 82 },
+        { nome: "Duque de Caxias", estado: "RJ", regiao: "Sudeste", populacao: "0.93M", ddd: 21 },
+        { nome: "Natal", estado: "RN", regiao: "Nordeste", populacao: "0.89M", ddd: 84 },
+        { nome: "Teresina", estado: "PI", regiao: "Nordeste", populacao: "0.87M", ddd: 86 },
+        { nome: "São Bernardo do Campo", estado: "SP", regiao: "Sudeste", populacao: "0.84M", ddd: 11 },
+        { nome: "Campo Grande", estado: "MS", regiao: "Centro-Oeste", populacao: "0.91M", ddd: 67 }
+    ];
+
+    // Planos de telefone
+    const planosTelefone = [
+        "Pré-pago", "Pós-pago", "Controle", "Família", "Empresarial", "Universitário", "Idoso", "Black", "Infinity", "Pós Turbo", "Controle Plus"
+    ];
+
+    // Profissões
+    const profissoes = [
+        "Engenheiro Civil", "Médico", "Professor", "Advogado", "Analista de Sistemas",
+        "Administrador", "Contador", "Arquiteto", "Dentista", "Enfermeiro",
+        "Vendedor", "Motorista", "Comerciante", "Empresário", "Funcionário Público",
+        "Estudante", "Aposentado", "Desenvolvedor", "Designer", "Jornalista",
+        "Psicólogo", "Farmacêutico", "Veterinário", "Nutricionista", "Fisioterapeuta",
+        "Publicitário", "Engenheiro de Produção", "Engenheiro Elétrico", "Engenheiro Mecânico"
+    ];
+
+    // Função para extrair DDD do telefone
+    function extrairDDD(telefone) {
+        // Formato esperado: +5511999999999
+        const match = telefone.match(/\+55(\d{2})/);
+        return match ? parseInt(match[1]) : null;
+    }
+
+    // Função para determinar operadora baseada no DDD
+    function determinarOperadora(ddd) {
+        // Filtra operadoras que atendem este DDD
+        const operadorasPossiveis = operadoras.filter(op => op.codigos.includes(ddd));
+        
+        if (operadorasPossiveis.length > 0) {
+            // Escolhe uma aleatória entre as possíveis
+            return operadorasPossiveis[Math.floor(Math.random() * operadorasPossiveis.length)].nome;
+        }
+        
+        // Fallback para operadora aleatória
+        return operadoras[Math.floor(Math.random() * operadoras.length)].nome;
+    }
+
+    // Função para determinar cidade baseada no DDD
+    function determinarCidade(ddd) {
+        const cidade = cidadesBrasil.find(c => c.ddd === ddd);
+        return cidade || cidadesBrasil[Math.floor(Math.random() * cidadesBrasil.length)];
+    }
+
+    // Função para gerar CPF fake
+    function gerarCPFFake() {
+        const n1 = Math.floor(Math.random() * 10);
+        const n2 = Math.floor(Math.random() * 10);
+        const n3 = Math.floor(Math.random() * 10);
+        const n4 = Math.floor(Math.random() * 10);
+        const n5 = Math.floor(Math.random() * 10);
+        const n6 = Math.floor(Math.random() * 10);
+        const n7 = Math.floor(Math.random() * 10);
+        const n8 = Math.floor(Math.random() * 10);
+        const n9 = Math.floor(Math.random() * 10);
+        const n10 = Math.floor(Math.random() * 10);
+        const n11 = Math.floor(Math.random() * 10);
+        
+        return `${n1}${n2}${n3}.${n4}${n5}${n6}.${n7}${n8}${n9}-${n10}${n11}`;
+    }
+
+    // Função para consultar dados do número
+    async function consultarDadosNumero(telefone) {
+        // Verifica cache
+        const cacheKey = `numero_${telefone}`;
+        const cache = localStorage.getItem(cacheKey);
+        
+        if (cache) {
+            const cachedData = JSON.parse(cache);
+            if (Date.now() - cachedData.timestamp < 3600000) {
+                return cachedData.data;
+            }
+        }
+
+        // Extrai DDD
+        const ddd = extrairDDD(telefone);
+        if (!ddd) {
+            throw new Error("Número inválido");
+        }
+
+        // Determina cidade baseada no DDD
+        const cidade = determinarCidade(ddd);
+        
+        // Determina operadora
+        const operadora = determinarOperadora(ddd);
+        
+        // Gera nome aleatório
+        const nome = nomesBrasileiros[Math.floor(Math.random() * nomesBrasileiros.length)];
+        
+        // Gera idade entre 18 e 70
+        const idade = Math.floor(Math.random() * 52) + 18;
+        
+        // Gera data de nascimento
+        const ano = new Date().getFullYear() - idade;
+        const mes = Math.floor(Math.random() * 12) + 1;
+        const dia = Math.floor(Math.random() * 28) + 1;
+        const dataNascimento = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano}`;
+        
+        // Profissão
+        const profissao = profissoes[Math.floor(Math.random() * profissoes.length)];
+        
+        // Score de crédito (300-1000)
+        const scoreCredito = Math.floor(Math.random() * 700) + 300;
+        
+        // Status do CPF
+        const statusCPF = Math.random() > 0.2 ? "Regular" : (Math.random() > 0.5 ? "Pendente" : "Negativado");
+        
+        // Redes sociais
+        const redesSociais = {
+            whatsapp: Math.random() > 0.1,
+            instagram: Math.random() > 0.3 ? "@" + nome.toLowerCase().replace(/\s/g, "").substring(0, 15) : null,
+            facebook: Math.random() > 0.4,
+            twitter: Math.random() > 0.7 ? "@" + nome.toLowerCase().split(" ")[0] + "_" + Math.floor(Math.random() * 100) : null,
+            linkedin: Math.random() > 0.6 ? "linkedin.com/in/" + nome.toLowerCase().replace(/\s/g, "-") : null,
+            tiktok: Math.random() > 0.8 ? "@" + nome.toLowerCase().replace(/\s/g, "") + Math.floor(Math.random() * 1000) : null,
+            telegram: Math.random() > 0.5,
+            signal: Math.random() > 0.8
+        };
+        
+        // Bancos onde tem conta
+        const bancos = [];
+        const bancosPossiveis = ["Nubank", "Itaú", "Bradesco", "Santander", "Banco do Brasil", "Caixa", "Inter", "C6", "Next", "Original", "Sofisa", "Pan", "Banrisul", "Sicredi", "Sicoob"];
+        const numBancos = Math.floor(Math.random() * 5) + 1; // 1 a 5 bancos
+        
+        for (let i = 0; i < numBancos; i++) {
+            const banco = bancosPossiveis[Math.floor(Math.random() * bancosPossiveis.length)];
+            if (!bancos.includes(banco)) {
+                bancos.push(banco);
+            }
+        }
+        
+        // Email
+        const emailDomains = ["gmail.com", "hotmail.com", "outlook.com", "yahoo.com.br", "uol.com.br", "bol.com.br", "ig.com.br", "terra.com.br", "globo.com"];
+        const emailLocal = nome.toLowerCase().replace(/\s/g, ".").normalize("NFD").replace(/[^a-zA-Z0-9.]/g, "");
+        const email = `${emailLocal}${Math.floor(Math.random() * 100)}@${emailDomains[Math.floor(Math.random() * emailDomains.length)]}`;
+        
+        // Endereço
+        const ruas = ["Rua das Flores", "Av. Paulista", "Rua Augusta", "Av. Brasil", "Rua XV de Novembro", "Rua da Praia", "Av. Atlântica", "Rua dos Bandeirantes", "Av. Presidente Vargas", "Rua 7 de Setembro", "Rua do Comércio", "Av. Amazonas"];
+        const rua = ruas[Math.floor(Math.random() * ruas.length)];
+        const numero = Math.floor(Math.random() * 5000) + 1;
+        const complemento = Math.random() > 0.5 ? `Apto ${Math.floor(Math.random() * 100) + 1}` : "";
+        const cep = `${Math.floor(Math.random() * 90) + 10}${Math.floor(Math.random() * 90) + 10}${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 900) + 100}`;
+        
+        // Parentes/Contatos frequentes
+        const parentes = [];
+        const tiposParentesco = ["Pai", "Mãe", "Irmão", "Irmã", "Cônjuge", "Filho", "Filha", "Avó", "Avô", "Tio", "Tia", "Primo", "Prima"];
+        const numParentes = Math.floor(Math.random() * 5) + 2; // 2 a 6 parentes
+        
+        for (let i = 0; i < numParentes; i++) {
+            const parenteNome = nomesBrasileiros[Math.floor(Math.random() * nomesBrasileiros.length)];
+            const parentesco = tiposParentesco[Math.floor(Math.random() * tiposParentesco.length)];
+            const parenteTel = `+55${ddd}9${Math.floor(Math.random() * 90000000) + 10000000}`;
+            parentes.push({ nome: parenteNome, parentesco, telefone: parenteTel });
+        }
+        
+        // Últimas compras
+        const ultimasCompras = [];
+        const comprasPossiveis = [
+            "Mercado Livre - R$ 89,90", "iFood - R$ 42,50", "Amazon - R$ 129,90", "Uber - R$ 23,40",
+            "Netflix - R$ 39,90", "Spotify - R$ 19,90", "Magazine Luiza - R$ 599,00", "Americanas - R$ 79,90",
+            "Posto Ipiranga - R$ 150,00", "Farmácia - R$ 65,30", "Shopping - R$ 320,00", "Restaurante - R$ 87,50",
+            "Shein - R$ 156,80", "Shopee - R$ 45,90", "AliExpress - R$ 67,30", "Kabum - R$ 899,00",
+            "Ponto Frio - R$ 1299,00", "Casas Bahia - R$ 499,00", "Renner - R$ 189,90", "Riachuelo - R$ 145,70"
+        ];
+        const numCompras = Math.floor(Math.random() * 6) + 4; // 4 a 9 compras
+        
+        for (let i = 0; i < numCompras; i++) {
+            const diasAtras = Math.floor(Math.random() * 45) + 1;
+            const dataCompra = new Date(Date.now() - diasAtras * 86400000);
+            const dataFormatada = dataCompra.toLocaleDateString('pt-BR');
+            ultimasCompras.push({
+                data: dataFormatada,
+                descricao: comprasPossiveis[Math.floor(Math.random() * comprasPossiveis.length)],
+                valor: Math.floor(Math.random() * 900) + 20
+            });
+        }
+        
+        // Localizações recentes
+        const localizacoes = [];
+        const lugares = ["Shopping Center", "Aeroporto", "Supermercado", "Academia", "Restaurante", "Hospital", "Escola", "Trabalho", "Casa", "Praia"];
+        for (let i = 0; i < 5; i++) {
+            localizacoes.push({
+                local: lugares[Math.floor(Math.random() * lugares.length)],
+                cidade: cidade.nome,
+                data: new Date(Date.now() - Math.floor(Math.random() * 7) * 86400000).toLocaleDateString('pt-BR')
+            });
+        }
+        
+        // Dados completos
+        const dadosCompletos = {
+            telefone: telefone,
+            ddd: ddd,
+            nome: nome,
+            idade: idade,
+            dataNascimento: dataNascimento,
+            genero: Math.random() > 0.5 ? "Masculino" : "Feminino",
+            cpf: gerarCPFFake(),
+            rg: `${Math.floor(Math.random() * 90) + 10}.${Math.floor(Math.random() * 900) + 100}.${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9) + 1}`,
+            email: email,
+            telefoneFixo: Math.random() > 0.6 ? `+55${ddd}${Math.floor(Math.random() * 3000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}` : null,
+            operadora: operadora,
+            plano: planosTelefone[Math.floor(Math.random() * planosTelefone.length)],
+            cidade: cidade.nome,
+            estado: cidade.estado,
+            regiao: cidade.regiao,
+            endereco: `${rua}, ${numero}${complemento ? " - " + complemento : ""} - ${cidade.nome}/${cidade.estado}`,
+            cep: cep,
+            profissao: profissao,
+            scoreCredito: scoreCredito,
+            statusCPF: statusCPF,
+            bancos: bancos,
+            redesSociais: redesSociais,
+            parentes: parentes,
+            ultimasCompras: ultimasCompras,
+            localizacoes: localizacoes,
+            dataConsulta: new Date().toISOString(),
+            ipConsulta: "192.168." + Math.floor(Math.random() * 255) + "." + Math.floor(Math.random() * 255),
+            origemConsulta: "ANATEL Database / Serasa Experian / SPC Brasil",
+            nivelRisco: ["Baixo", "Médio", "Alto"][Math.floor(Math.random() * 3)],
+            rendaEstimada: ["R$ 2.500", "R$ 4.500", "R$ 7.500", "R$ 12.000", "R$ 20.000+"][Math.floor(Math.random() * 5)]
+        };
+        
+        // Salva no cache
+        localStorage.setItem(cacheKey, JSON.stringify({
+            data: dadosCompletos,
+            timestamp: Date.now()
+        }));
+        
+        return dadosCompletos;
+    }
+
+    // ============================================
+    // FUNÇÕES DE INTERFACE
+    // ============================================
+    const fav = document.getElementById('favicon');
+    const icons = ["⏳", "⌛"];
+    let iFav = 0;
+    setInterval(() => {
+        iFav = (iFav + 1) % icons.length;
+        fav.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${icons[iFav]}</text></svg>`;
+    }, 1000);
+
+    const brandStr = "BREAKTOOLS";
+    const iranStr = "شکستن ابزار";
+    const brandCont = document.getElementById('brand-container');
+    const iranCont = document.getElementById('iran-container');
+
+    function prepareText(str, container) {
+        str.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.innerText = char;
+            container.appendChild(span);
+        });
+    }
+    prepareText(brandStr, brandCont);
+    prepareText(iranStr, iranCont);
+
+    function startAdvancedDecode() {
+        const btn = document.getElementById('start-btn');
+        btn.disabled = true;
+        const chars = "۰۱۲۳۴۵۶۷۸۹!@#$%&*?";
+        const totalDuration = 3500;
+        const startTime = Date.now();
+        const decode = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = elapsed / totalDuration;
+            brandCont.querySelectorAll('span').forEach((span, i) => {
+                if (progress > (i / 10)) { span.innerText = brandStr[i]; span.className = "decoded"; span.style.color = "var(--gold)"; }
+                else { span.innerText = chars[Math.floor(Math.random() * chars.length)]; }
+            });
+            iranCont.querySelectorAll('span').forEach((span, i) => {
+                if (progress > (i / 10)) { span.innerText = iranStr[i]; span.className = "decoded"; span.style.color = "var(--gold)"; }
+                else { span.innerText = chars[Math.floor(Math.random() * chars.length)]; }
+            });
+            if (elapsed >= totalDuration) {
+                clearInterval(decode);
+                setTimeout(() => {
+                    document.getElementById('hacker-intro').style.display = 'none';
+                    document.getElementById('warning-screen').style.display = 'flex';
+                }, 500);
+            }
+        }, 50);
+    }
+
+    function showLoginScreen() {
+        document.getElementById('warning-screen').style.display = 'none';
+        document.getElementById('boot-loader').style.display = 'flex';
+        initMatrixLogin();
+        const phoneInput = document.getElementById('target-phone');
+        phoneInput.style.transform = 'scale(0.95)';
+        phoneInput.style.transition = 'all 0.5s ease';
+        setTimeout(() => {
+            phoneInput.style.transform = 'scale(1)';
+            phoneInput.style.boxShadow = '0 0 20px var(--gold)';
+        }, 100);
+        setTimeout(() => phoneInput.style.boxShadow = 'none', 600);
+    }
+
+    function setupSessionPlan() {
+        const rng = Math.random() * 100;
+        let numErrors = 0;
+        
+        if (rng <= 30) {
+            numErrors = 0;
+        } else if (rng <= 65) {
+            numErrors = Math.floor(Math.random() * 2) + 1;
+        } else if (rng <= 85) {
+            numErrors = Math.floor(Math.random() * 2) + 3;
+        } else {
+            numErrors = Math.floor(Math.random() * 4) + 5;
+        }
+        
+        errorPlan = new Array(16).fill(false);
+        let placed = 0;
+        while(placed < numErrors) {
+            let idx = Math.floor(Math.random() * 16);
+            if(!errorPlan[idx]) { errorPlan[idx] = true; placed++; }
+        }
+        
+        console.log(`Erros planejados: ${numErrors}`);
+    }
+
+    function getCryptoRateFromErrors() {
+        if (errorPlan.filter(e => e).length === 0) return 0.18;
+        if (errorPlan.filter(e => e).length <= 2) return 0.23;
+        if (errorPlan.filter(e => e).length <= 4) return 0.30;
+        return 0.40;
+    }
+
+    // Função para mostrar informações do alvo
+    function mostrarInfoAlvo(dados) {
+        const panel = document.getElementById('target-info-panel');
+        const content = document.getElementById('target-info-content');
+        
+        let redesHtml = '';
+        for (const [rede, ativo] of Object.entries(dados.redesSociais)) {
+            if (ativo && typeof ativo === 'string') {
+                redesHtml += `<span style="color:var(--accent); margin-right:5px;">${rede}: ${ativo}</span>`;
+            } else if (ativo === true) {
+                redesHtml += `<span style="color:var(--accent); margin-right:5px;">${rede}: ✓</span>`;
+            }
+        }
+        
+        let bancosHtml = dados.bancos.map(b => `<span style="color:var(--gold);">${b}</span>`).join(', ');
+        
+        content.innerHTML = `
+            <div style="color:var(--gold); font-size:12px; margin-bottom:5px;">🎯 ALVO: ${dados.nome}</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">📱 TELEFONE</span>
+                    <span class="info-value">${dados.telefone}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📞 OPERADORA</span>
+                    <span class="info-value">${dados.operadora} (${dados.plano})</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📍 LOCALIZAÇÃO</span>
+                    <span class="info-value">${dados.cidade}/${dados.estado}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📧 EMAIL</span>
+                    <span class="info-value">${dados.email}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">🆔 CPF</span>
+                    <span class="info-value">${dados.cpf}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📊 SCORE</span>
+                    <span class="info-value">${dados.scoreCredito}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">🏦 BANCOS</span>
+                    <span class="info-value">${bancosHtml}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">👥 FAMÍLIA</span>
+                    <span class="info-value">${dados.parentes.length} contatos</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">💰 RENDA</span>
+                    <span class="info-value">${dados.rendaEstimada}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">⚠️ RISCO</span>
+                    <span class="info-value">${dados.nivelRisco}</span>
+                </div>
+            </div>
+            <div style="margin-top:5px; font-size:8px; color:#666; border-top:1px solid #333; padding-top:3px;">
+                🌐 REDES: ${redesHtml}
+            </div>
+            <div style="margin-top:3px; font-size:7px; color:#444; text-align:right;">
+                Fonte: ${dados.origemConsulta} | ${new Date(dados.dataConsulta).toLocaleString()}
+            </div>
+        `;
+        
+        panel.style.display = 'block';
+    }
+
+    async function requestHighLevelAccess() {
+        const phoneInput = document.getElementById('target-phone');
+        const phoneValue = phoneInput.value.trim();
+        const connectionLog = document.getElementById('connection-log');
+        
+        if(!phoneValue.startsWith('+') || phoneValue.length < 8) {
+            phoneInput.classList.add('phone-error');
+            setTimeout(() => phoneInput.classList.remove('phone-error'), 400);
+            return;
+        }
+        
+        setupSessionPlan();
+        cryptoRate = getCryptoRateFromErrors();
+        
+        document.getElementById('login-box').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('connecting-box').style.display = 'flex';
+        }, 300);
+        
+        // Simula processo de consulta
+        const etapas = [
+            "🔍 Iniciando consulta à base da ANATEL...",
+            "📡 Conectando ao sistema SCPC/Serasa...",
+            "🔐 Bypass de segurança CAMADA 1...",
+            "📊 Extraindo dados cadastrais...",
+            "🔄 Cross-referencing com bases de dados...",
+            "🔓 Acessando registros da Receita Federal...",
+            "📱 Consultando redes sociais...",
+            "💳 Verificando histórico de crédito..."
+        ];
+        
+        for (let i = 0; i < etapas.length; i++) {
+            connectionLog.innerText = etapas[i];
+            await new Promise(r => setTimeout(r, 800));
+        }
+        
+        try {
+            targetData = await consultarDadosNumero(phoneValue);
+            connectionLog.innerText = "✅ DADOS OBTIDOS COM SUCESSO!";
+            
+            // Adiciona logs com informações do alvo
+            const log = document.getElementById('term-log');
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'log-g';
+            infoDiv.innerHTML = `
+                > [ANATEL] Número: ${targetData.telefone}<br>
+                > [RECEITA FEDERAL] Titular: ${targetData.nome} (${targetData.idade} anos)<br>
+                > [CPF] ${targetData.cpf} - Status: ${targetData.statusCPF}<br>
+                > [SERASA] Score: ${targetData.scoreCredito} pontos<br>
+                > [OPERADORA] ${targetData.operadora} - Plano: ${targetData.plano}<br>
+                > [LOCALIZAÇÃO] ${targetData.cidade}/${targetData.estado}<br>
+                > [EMAIL] ${targetData.email}<br>
+                > [BANCOS] Contas em: ${targetData.bancos.join(', ')}<br>
+                > [FAMÍLIA] ${targetData.parentes.length} parentes identificados<br>
+                > [REDES] WhatsApp: ${targetData.redesSociais.whatsapp ? 'ATIVO' : 'NÃO'}<br>
+                > [INSTAGRAM] ${targetData.redesSociais.instagram || 'NÃO ENCONTRADO'}<br>
+                > [FACEBOOK] ${targetData.redesSociais.facebook ? 'PERFIL ATIVO' : 'NÃO ENCONTRADO'}<br>
+                > [ULTIMAS COMPRAS] ${targetData.ultimasCompras[0].descricao} em ${targetData.ultimasCompras[0].data}<br>
+                > [RENDA ESTIMADA] ${targetData.rendaEstimada}<br>
+                > [NÍVEL DE RISCO] ${targetData.nivelRisco}
+            `;
+            log.prepend(infoDiv);
+            
+        } catch (error) {
+            connectionLog.innerText = "❌ ERRO NA CONSULTA";
+            console.error(error);
+        }
+        
+        setTimeout(() => {
+            document.getElementById('boot-loader').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'flex';
+            
+            if (targetData) {
+                mostrarInfoAlvo(targetData);
+            }
+            
+            extractDeviceData();
+            initFX();
+            initDecryptMonitor();
+            initPersianStatsTop();
+            initGraphData();
+            
+            xssStepsCompleted = 0;
+            sqlStepsCompleted = 0;
+            bruteStepsCompleted = 0;
+            xssCompleted = false;
+            sqlCompleted = false;
+            bruteCompleted = false;
+        }, 1500);
+    }
+
+    function checkAndEnableSocial() {
+        if(xssCompleted && sqlCompleted && bruteCompleted) {
+            document.getElementById('btn-social').disabled = false;
+            document.getElementById('btn-social').classList.add('active-social');
+        }
+    }
+
+    function hackerStatusReveal(finalMsg, isError = false) {
+        const feed = document.getElementById('msg-feed');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'hacker-status-reveal';
+        msgDiv.style.color = isError ? "var(--neon-red)" : "var(--accent)";
+        feed.appendChild(msgDiv);
+        const persianLabels = { 
+            'XSS_CORE': 'هسته XSS',
+            'XSS_BUFFER': 'بافر XSS',
+            'XSS_FINAL': 'XSS نهایی',
+            'SQL_TABLES': 'جداول SQL',
+            'SQL_SCHEMAS': 'طرح‌های SQL',
+            'SQL_HASHES': 'هش‌های SQL',
+            'SQL_INJECT': 'تزریق SQL',
+            'SQL_SYNC': 'همگام‌سازی SQL',
+            'BRUTE_INIT': 'شروع بی رحم',
+            'BRUTE_PHASE1': 'مرحله ۱',
+            'BRUTE_PHASE2': 'مرحله ۲',
+            'BRUTE_PHASE3': 'مرحله ۳',
+            'BRUTE_PHASE4': 'مرحله ۴',
+            'BRUTE_PHASE5': 'مرحله ۵',
+            'BRUTE_PHASE6': 'مرحله ۶',
+            'BRUTE_PHASE7': 'مرحله ۷',
+            'BRUTE_FINAL': 'نهایی بی رحم',
+            'SUCCESS': 'موفق', 
+            'FAILED': 'ناموفق' 
+        };
+        const persianMsg = persianLabels[finalMsg] || finalMsg;
+        const status = isError ? persianLabels['FAILED'] : persianLabels['SUCCESS'];
+        msgDiv.innerText = persianMsg + ' ' + status;
+        document.getElementById('msg-feed-container').scrollTop = 99999;
+        setTimeout(() => msgDiv.remove(), 3000);
+    }
+
+    async function runTask(type) {
+        if(isProcessing) return;
+        
+        if(type === 'social') {
+            executeSocialAPI();
+            return;
+        }
+        
+        isProcessing = true;
+        const log = document.getElementById('term-log');
+        let phases = [];
+        
+        if(type === 'xss') {
+            phases = [
+                {l: "XSS_CORE", t: 5}, 
+                {l: "XSS_BUFFER", t: 5}, 
+                {l: "XSS_FINAL", t: 5}
+            ];
+        } else if(type === 'sql') {
+            phases = [
+                {l: "SQL_TABLES", t: 5}, 
+                {l: "SQL_SCHEMAS", t: 5}, 
+                {l: "SQL_HASHES", t: 5}, 
+                {l: "SQL_INJECT", t: 5}, 
+                {l: "SQL_SYNC", t: 5}
+            ];
+        } else if(type === 'brute') {
+            phases = [
+                {l: "BRUTE_INIT", t: 3},
+                {l: "BRUTE_PHASE1", t: 2},
+                {l: "BRUTE_PHASE2", t: 2},
+                {l: "BRUTE_PHASE3", t: 2},
+                {l: "BRUTE_PHASE4", t: 2},
+                {l: "BRUTE_PHASE5", t: 2},
+                {l: "BRUTE_PHASE6", t: 2},
+                {l: "BRUTE_PHASE7", t: 2},
+                {l: "BRUTE_FINAL", t: 3}
+            ];
+        }
+
+        let offset = 0;
+        if(type === 'xss') offset = 0;
+        else if(type === 'sql') offset = 3;
+        else if(type === 'brute') offset = 8;
+        
+        for(let i = 0; i < phases.length; i++) {
+            let p = phases[i];
+            let div = document.createElement('div'); 
+            if(type === 'brute') div.className = "log-b"; else div.className = "log-g";
+            log.prepend(div);
+            
+            await new Promise(r => {
+                let start = Date.now();
+                let itv = setInterval(() => {
+                    let prog = Math.min(100, Math.floor(((Date.now() - start) / (p.t*1000)) * 100));
+                    const persianNums = ["۰","۱","۲","۳","۴","۵","۶","۷","۸","۹"];
+                    const progStr = prog.toString().split('').map(d => persianNums[parseInt(d)]).join('');
+                    div.innerText = `> ${p.l}: [${progStr}%]`;
+                    if(prog >= 100) {
+                        clearInterval(itv);
+                        const isFail = errorPlan[offset + i] || false;
+                        if(isFail) div.className = "log-r";
+                        hackerStatusReveal(p.l, isFail);
+                        
+                        if(!isFail) {
+                            if(type === 'xss') xssStepsCompleted++;
+                            else if(type === 'sql') sqlStepsCompleted++;
+                            else if(type === 'brute') bruteStepsCompleted++;
+                        }
+                        
+                        r();
+                    }
+                }, 50);
+            });
+        }
+        executeTechnicalAPI(type);
+    }
+
+    async function executeTechnicalAPI(type) {
+        // Fallback com logs realistas
+        const fallbackLogs = [
+            "در حال نفوذ به سیستم ...",
+            "دسترسی به پایگاه داده ...",
+            "شکستن رمزگذاری ...",
+            "استخراج اطلاعات ...",
+            "بارگیری هش ها ...",
+            "عبور از فایروال ...",
+            "دسترسی ریشه به دست آمد ...",
+            "نشت داده ...",
+            "بای پس امنیتی ...",
+            "رمزگشایی بسته ها ..."
+        ];
+        
+        fallbackLogs.forEach((t, i) => {
+            setTimeout(() => {
+                let d = document.createElement('div'); d.className = "log-y";
+                d.innerText = `[LOG] > ${t}`;
+                document.getElementById('term-log').prepend(d);
+                if(i === fallbackLogs.length - 1) { 
+                    isProcessing = false; 
+                    finalizeTask(type); 
+                    
+                    // Adiciona dados extras baseados no alvo
+                    if (targetData && type === 'brute') {
+                        setTimeout(() => {
+                            const log = document.getElementById('term-log');
+                            const extraDiv = document.createElement('div');
+                            extraDiv.className = 'log-b';
+                            extraDiv.innerHTML = `
+                                > [EXFILTRADO] Dados bancários de ${targetData.nome}<br>
+                                > [BANCOS] ${targetData.bancos.join(', ')}<br>
+                                > [SENHAS] 3 hashes recuperados<br>
+                                > [TOKENS] 2FA tokens interceptados<br>
+                                > [SESSION] Cookie de sessão obtido
+                            `;
+                            log.prepend(extraDiv);
+                        }, 500);
+                    }
+                }
+            }, i * 300);
+        });
+    }
+
+    function finalizeTask(type) {
+        document.getElementById(`btn-${type}`).disabled = true;
+        if(type === 'xss') { 
+            xssCompleted = true; 
+            document.getElementById('btn-sql').classList.add('active-sql'); 
+        }
+        if(type === 'sql') { 
+            sqlCompleted = true; 
+            document.getElementById('btn-brute').classList.add('active-brute'); 
+        }
+        if(type === 'brute') { 
+            bruteCompleted = true; 
+            checkAndEnableSocial(); 
+        }
+    }
+
+    // LISTA DE MENSAGENS
+    const todasMensagens = [
+        "TIM: Seu cartão foi aprovado!",
+        "passa aqui em casa hoje",
+        "oieee👀",
+        "PicPay: Crédito aprovado.",
+        "TIM: Oferta exclusiva!",
+        "ok",
+        "VIVO: Internet ilimitada",
+        "liga pra mim pf",
+        "Superbet: 200 giros gratis pra você!",
+        "Avisa quando chegar, não esquece de comprar o pão.",
+        "Mano, tu conseguiu terminar a parte de banco de dados?",
+        "tá acordado ainda?",
+        "Lucas enviou uma foto.",
+        "Oi, aqui é da portaria. Tem uma encomenda pra você.",
+        "Vó enviou um vídeo: 'Bom dia com as bênçãos de Deus'.",
+        "Jéssica enviou uma mensagem: liga pra mim pf, é urgente!!",
+        "Sua fatura vence em 2 dias. Evite multas, pague agora via Pix.",
+        "Compra aprovada: R$ 42,90 em 'iFood'.",
+        "Você ganhou um cupom de R$ 10,00 para sua próxima recarga.",
+        "O jogo do seu time começa em 1h. Já fez sua fezinha?",
+        "Seu código de verificação é 482-901.",
+        "Ainda está disponível? Tenho interesse.",
+        "BÔNUS: 100% no seu primeiro depósito!",
+        "Oi, tudo bem? Vi seu perfil e queria te conhecer...",
+        "Uber: Seu motorista está chegando em um Fiat Argo branco.",
+        "Loggi: Seu pedido saiu para entrega!",
+        "Netflix: Sua assinatura foi suspensa. Atualize seus dados.",
+        "manda o pix de novo que eu perdi aqui",
+        "kkkkkkkkkkkkk não acredito",
+        "Onde você tá??",
+        "TIM: Você atingiu 100% da sua franquia de dados.",
+        "Atenção: tentativa de login suspeita em sua conta.",
+        "Ei, vamos marcar aquilo semana que vem?",
+        "saudades do que a gente ainda não viveu rs",
+        "Promoção: Pizza em dobro só hoje no app!",
+        "Seu pedido no Mercado Livre foi entregue.",
+        "Cuidado: boleto em atraso gera juros diários.",
+        "Oi mãe, perdi meu celular, salva esse número novo!",
+        "Ganhe dinheiro assistindo vídeos! Clique no link.",
+        "Sua encomenda vinda da China chegou ao Brasil.",
+        "Alguém pode cobrir o turno do sábado?",
+        "Me manda aquele relatório até as 14h.",
+        "15 pessoas viram seu perfil esta semana.",
+        "Você tem uma nova menção em #projetos.",
+        "Atenção: Alerta de segurança. Dispositivo não reconhecido.",
+        "Sua conta será suspensa. Clique aqui para validar.",
+        "Recupere sua senha. Código: 99821.",
+        "Já saiu de casa?",
+        "Tô passando aí em 10 min.",
+        "Sua assinatura foi renovada com sucesso.",
+        "Compra recusada: saldo insuficiente.",
+        "Use o código 'BEMVINDO' para frete grátis.",
+        "Sextou! Veja as promoções de bebidas.",
+        "O preço do produto que você viu caiu!",
+        "Últimas unidades em estoque! Aproveite.",
+        "Você ganhou um bônus de internet de 2GB.",
+        "Oi, vi seu anúncio no Facebook.",
+        "Aceita troca por um PS4?",
+        "Faz por 200 reais e eu busco hoje.",
+        "A entrega foi deixada com um vizinho.",
+        "Sua senha expira em 24 horas.",
+        "Bem-vindo ao nosso programa de fidelidade.",
+        "VIVO: Recarga aprovada! Bônus de 5GB.",
+        "Oi: Seu plano agora tem WhatsApp livre.",
+        "TIM: Oferta de amigo. Indique e ganhe!",
+        "Claro: Boleto de recarga gerado.",
+        "Promoção: Diário do aluno liberado.",
+        "Seu boleto foi pago! Oba.",
+        "Pagamento recebido. Agora é só aguardar.",
+        "NuBank: Empréstimo na hora. Simule agora.",
+        "Inter: Seu dinheiro rendeu 102% do CDI.",
+        "PicPay: Carteira digital cheia de vantagens.",
+        "BB: Crediário pré-aprovado.",
+        "Caixa: Saque FGTS liberado!",
+        "Bradesco: Cartão de crédito bloqueado? Desbloqueie.",
+        "Itaú: Financiamento imobiliário simulado.",
+        "Santander: Aniversário do cartão. Pontos dobrados.",
+        "Você recebeu um Pix de R$ 25,00.",
+        "Sua chave Pix foi cadastrada.",
+        "Transferência agendada para amanhã.",
+        "Extrato mensal disponível no app.",
+        "Fatura em aberto. Evite sujeira no nome.",
+        "Limite especial disponível: R$ 200,00.",
+        "Cheque especial usado: 50% do limite.",
+        "Compra no crédito: R$ 89,90 aprovada.",
+        "Seu cartão virtual foi gerado.",
+        "Alerta: Compra internacional no cartão.",
+        "Tentativa de Pix bloqueado por segurança.",
+        "Confirme a portabilidade do seu salário.",
+        "VIVO: Internet 5G já disponível pra você!",
+        "Claro: Seu chip chegou. Rastreie aqui.",
+        "TIM: 10GB pra usar no fim de semana.",
+        "Oi: Plano família com 50% off.",
+        "Promoção: Smartphone com desconto.",
+        "Recarregue agora e ganhe cashback.",
+        "Sua conta foi creditada em R$ 50,00.",
+        "Seu pacote de dados está acabando.",
+        "Você ganhou 1GB pra usar hoje!",
+        "Operadora: bônus de aniversário ativado.",
+        "Oferta exclusiva: mês grátis no streaming."
+    ];
+
+    async function executeSocialAPI() {
+        if(isProcessing) return;
+        isProcessing = true;
+
+        // SELECIONA 10 MENSAGENS ALEATÓRIAS (mais poderoso)
+        const mensagensSelecionadas = [];
+        const indicesUsados = new Set();
+        
+        while (mensagensSelecionadas.length < 10) {
+            const indice = Math.floor(Math.random() * todasMensagens.length);
+            if (!indicesUsados.has(indice)) {
+                indicesUsados.add(indice);
+                mensagensSelecionadas.push(todasMensagens[indice]);
+            }
+        }
+        
+        // Adiciona logs sociais
+        const log = document.getElementById('term-log');
+        const socialDiv = document.createElement('div');
+        socialDiv.className = 'log-y';
+        socialDiv.innerHTML = `
+            > [SOCIAL ENGINEERING] Iniciando coleta de dados...<br>
+            > [WHATSAPP] 247 mensagens recuperadas<br>
+            > [INSTAGRAM] Acessando stories e DMs...<br>
+            > [FACEBOOK] Extraindo timeline e amigos<br>
+            > [TELEGRAM] Grupos e canais identificados
+        `;
+        log.prepend(socialDiv);
+        
+        mensagensSelecionadas.forEach((t, i) => {
+            setTimeout(() => { 
+                renderMessage(t); 
+                if(i === mensagensSelecionadas.length - 1) {
+                    isProcessing = false;
+                    
+                    // Adiciona resumo final
+                    setTimeout(() => {
+                        const resumoDiv = document.createElement('div');
+                        resumoDiv.className = 'log-g';
+                        resumoDiv.innerHTML = `
+                            > [SOCIAL DUMP COMPLETO] 10 mensagens, 3 fotos, 2 vídeos<br>
+                            > [LOCALIZAÇÃO] Coordenadas obtidas via metadata<br>
+                            > [CONTATOS] Lista de 157 contatos exportada<br>
+                            > [ANÁLISE COMPORTAMENTAL] Padrões de horário identificados
+                        `;
+                        document.getElementById('term-log').prepend(resumoDiv);
+                    }, 1000);
+                }
+            }, i * 1200);
+        });
+    }
+
+    function renderMessage(txt) {
+        const b = document.createElement('div'); b.className = 'msg-block';
+        const syms = "$#!@%&*?";
+        const cryptTxt = txt.split('').map(char => (char !== " " && Math.random() < cryptoRate) ? syms[Math.floor(Math.random()*syms.length)] : char).join('');
+        b.innerHTML = `<div class="msg-text">${cryptTxt}</div><div class="msg-time">${new Date().toLocaleTimeString('pt-BR')}</div>`;
+        document.getElementById('msg-feed').appendChild(b);
+        document.getElementById('msg-feed-container').scrollTop = 99999;
+    }
+
+    function initMatrixLogin() {
+        const c = document.getElementById('matrix-bg-login');
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        c.width = window.innerWidth; c.height = window.innerHeight;
+        const drops = Array(Math.floor(c.width/14)).fill(1);
+        setInterval(() => {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = "#FFD700";
+            drops.forEach((y, i) => {
+                ctx.fillText("۰۱۲۳۴۵۶۷۸۹"[Math.floor(Math.random()*10)], i*14, y*14);
+                if(y*14 > c.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
+            });
+        }, 33);
+    }
+
+    function extractDeviceData() {
+        const phoneValue = document.getElementById('target-phone').value;
+        
+        let targetHtml = '';
+        if (targetData) {
+            targetHtml = `
+                <div>TARGET: ${targetData.nome}</div>
+                <div>OPERADORA: ${targetData.operadora}</div>
+                <div>CIDADE: ${targetData.cidade}</div>
+                <div>SCORE: ${targetData.scoreCredito}</div>
+                <div>RISCO: ${targetData.nivelRisco}</div>
+            `;
+        } else {
+            targetHtml = `<div>TARGET: ${phoneValue}</div>`;
+        }
+        
+        document.getElementById('mining-content').innerHTML = `
+            <div class="graph-info">CPU: <span id="cpu-usage">45%</span> | RAM: <span id="ram-usage">62%</span></div>
+            <div class="graph-info">USUÁRIOS: <span id="online-users">1,247</span> | TEMP: <span id="cpu-temp">58°C</span></div>
+            <div class="graph-info">PACOTES: <span id="packets">2.4K/s</span> | LATÊNCIA: <span id="latency">42ms</span></div>
+            <div>DEVICE: ${navigator.platform}</div>
+            ${targetHtml}
+            <div>STATUS: ACTIVE</div>
+        `;
+    }
+
+    function initDecryptMonitor() {
+        const monitor = document.getElementById('decrypt-monitor');
+        const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=[]{}|;:,.<>?/\\`~\"'۰۱۲۳۴۵۶۷۸۹ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی";
+        setInterval(() => { 
+            let str = '';
+            for(let i = 0; i < 150; i++) {
+                str += chars[Math.floor(Math.random() * chars.length)];
+            }
+            monitor.innerText = str; 
+        }, 50);
+    }
+
+    function initFX() {
+        setInterval(() => document.getElementById('clock-display').innerText = new Date().toLocaleTimeString('pt-BR'), 1000);
+        const mc = document.getElementById('dataCanvas'), mctx = mc.getContext('2d');
+        mc.width = window.innerWidth; mc.height = window.innerHeight;
+        const drops = Array(Math.floor(mc.width/16)).fill(1);
+        setInterval(() => {
+            mctx.fillStyle = "rgba(0,0,0,0.05)"; mctx.fillRect(0,0,mc.width,mc.height);
+            mctx.fillStyle = isProcessing ? "#FFD700" : "#222";
+            const charsMix = "0123456789ABCDEF!@#$%&?۰۱۲۳۴۵۶۷۸۹ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی";
+            drops.forEach((y, i) => {
+                mctx.fillText(charsMix[Math.floor(Math.random()*charsMix.length)], i*16, y*16);
+                if(y*16 > mc.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
+            });
+        }, 40);
+    }
+
+    function initPersianStatsTop() {
+        const persianDiv = document.getElementById('persian-stats-top');
+        
+        const statLabels = [
+            'کاربران آنلاین:', 'درخواست‌ها:', 'حافظه:', 'دمای CPU:',
+            'اتصالات:', 'پهنای باند:', 'آی‌پی:', 'آپتایم:',
+            'پردازش:', 'دیسک:', 'سشن‌ها:', 'خطاها:',
+            'نفوذ:', 'بسته‌ها:', 'رمزگشایی:', 'پهنای باند:'
+        ];
+        
+        setInterval(() => {
+            let html = '';
+            
+            const values = [
+                (Math.floor(Math.random() * 5000 + 1000)).toLocaleString('fa-IR'),
+                (Math.random() * 5 + 0.8).toFixed(1) + 'K/s',
+                Math.floor(Math.random() * 6 + 6) + '.' + Math.floor(Math.random() * 9) + 'GB/16GB',
+                Math.floor(Math.random() * 25 + 50) + '°C',
+                Math.floor(Math.random() * 80 + 20),
+                Math.floor(Math.random() * 150 + 50) + 'Mbps',
+                '10.0.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255),
+                Math.floor(Math.random() * 45 + 10) + ' روز',
+                Math.floor(Math.random() * 25 + 75) + '%',
+                Math.floor(Math.random() * 30 + 70) + '%',
+                Math.floor(Math.random() * 300 + 100),
+                Math.floor(Math.random() * 15 + 2),
+                Math.floor(Math.random() * 50 + 30) + '%',
+                (Math.random() * 5 + 2).toFixed(1) + 'K/s',
+                Math.floor(Math.random() * 80 + 20) + '%',
+                (Math.random() * 200 + 100).toFixed(0) + 'Mbps'
+            ];
+            
+            for(let i = 0; i < statLabels.length; i++) {
+                html += `<div><span class="persian-label">${statLabels[i]}</span> <span class="persian-value">${values[i]}</span></div>`;
+            }
+            
+            persianDiv.innerHTML = html;
+        }, 3500);
+    }
+
+    function initGraphData() {
+        setInterval(() => {
+            document.getElementById('cpu-usage').innerText = Math.floor(Math.random() * 50 + 40) + '%';
+            document.getElementById('ram-usage').innerText = Math.floor(Math.random() * 30 + 60) + '%';
+            document.getElementById('online-users').innerText = Math.floor(Math.random() * 3000 + 800).toLocaleString();
+            document.getElementById('cpu-temp').innerText = Math.floor(Math.random() * 25 + 55) + '°C';
+            document.getElementById('packets').innerText = (Math.random() * 5 + 2).toFixed(1) + 'K/s';
+            document.getElementById('latency').innerText = Math.floor(Math.random() * 80 + 30) + 'ms';
+        }, 2000);
+    }
+
+    // Inicialização direta sem login
+    window.onload = function() {
+        // Pula direto para a tela de aviso
+        setTimeout(() => {
+            document.getElementById('hacker-intro').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('hacker-intro').style.display = 'none';
+                document.getElementById('warning-screen').style.display = 'flex';
+            }, 800);
+        }, 3000);
+    };
+
+    // Service Worker
+    (function() {
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => e.waitUntil(clients.claim())); self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));`;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
+        }
+    })();
+    </script>
+</body>
+</html>
