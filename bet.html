@@ -768,60 +768,64 @@
         }
     }
 
-    // Função para pagamento personalizado (adaptada do pagarSocial original)
-    async function processarPagamentoPersonalizado(usuario, valor) {
-        console.log('💰 Processando pagamento personalizado:', usuario, 'valor:', valor);
-        
-        try {
-            // Verificar se supabaseClient está disponível (deve estar global)
-            if (typeof supabaseClient === 'undefined') {
-                console.error('supabaseClient não encontrado');
-                return { status: 'error', msg: 'Erro de configuração do banco' };
-            }
-            
-            // Buscar usuário e saldo
-            const { data: userData, error: selectError } = await supabaseClient
-                .from('usuarios')
-                .select('id, saldo')
-                .eq('usuario', usuario)
-                .maybeSingle();
-            
-            if (selectError || !userData) {
-                console.error('Usuário não encontrado:', selectError);
-                return { status: 'error', msg: 'Usuário não encontrado' };
-            }
-            
-            const saldoAtual = parseFloat(userData.saldo);
-            console.log('💰 Saldo atual:', saldoAtual);
-            
-            if (saldoAtual < valor) {
-                console.log('⚠️ Saldo insuficiente:', saldoAtual);
-                return { status: 'error', msg: 'Saldo insuficiente' };
-            }
-            
-            const novoSaldo = saldoAtual - valor;
-            
-            const { error: updateError } = await supabaseClient
-                .from('usuarios')
-                .update({ saldo: novoSaldo })
-                .eq('id', userData.id);
-            
-            if (updateError) {
-                console.error('Erro ao atualizar saldo:', updateError);
-                return { status: 'error', msg: updateError.message };
-            }
-            
-            localStorage.setItem('user_saldo', novoSaldo);
-            console.log('✅ Pagamento realizado. Novo saldo:', novoSaldo);
-            
-            return { status: 'success' };
-            
-        } catch (error) {
-            console.error('❌ Erro no pagamento:', error);
-            return { status: 'error', msg: 'Erro no pagamento' };
+    // Função para pagamento personalizado (usando a variável supabase global)
+async function processarPagamentoPersonalizado(usuario, valor) {
+    console.log('💰 Processando pagamento personalizado:', usuario, 'valor:', valor);
+    
+    try {
+        // Verificar se supabase está disponível (agora é global graças à linha que adicionamos)
+        if (typeof supabase === 'undefined') {
+            console.error('supabase não encontrado');
+            return { status: 'error', msg: 'Erro de configuração do banco' };
         }
+        
+        // Buscar usuário e saldo
+        const { data: userData, error: selectError } = await supabase
+            .from('usuarios')
+            .select('id, saldo')
+            .eq('usuario', usuario)
+            .maybeSingle();
+        
+        if (selectError) {
+            console.error('Erro na consulta:', selectError);
+            return { status: 'error', msg: 'Erro na consulta: ' + selectError.message };
+        }
+        
+        if (!userData) {
+            console.error('Usuário não encontrado');
+            return { status: 'error', msg: 'Usuário não encontrado' };
+        }
+        
+        const saldoAtual = parseFloat(userData.saldo);
+        console.log('💰 Saldo atual:', saldoAtual);
+        
+        if (saldoAtual < valor) {
+            console.log('⚠️ Saldo insuficiente:', saldoAtual);
+            return { status: 'error', msg: 'Saldo insuficiente' };
+        }
+        
+        const novoSaldo = saldoAtual - valor;
+        
+        const { error: updateError } = await supabase
+            .from('usuarios')
+            .update({ saldo: novoSaldo })
+            .eq('id', userData.id);
+        
+        if (updateError) {
+            console.error('Erro ao atualizar saldo:', updateError);
+            return { status: 'error', msg: updateError.message };
+        }
+        
+        localStorage.setItem('user_saldo', novoSaldo);
+        console.log('✅ Pagamento realizado. Novo saldo:', novoSaldo);
+        
+        return { status: 'success' };
+        
+    } catch (error) {
+        console.error('❌ Erro no pagamento:', error);
+        return { status: 'error', msg: 'Erro no pagamento: ' + error.message };
     }
-
+}
     async function iniciarJogoSocial() {
         isProcessing = true;
         
@@ -1008,29 +1012,29 @@
     }
 
     async function adicionarPremio(user, valor) {
-        try {
-            const { data: userData, error: selectError } = await supabaseClient
-                .from('usuarios')
-                .select('id, saldo')
-                .eq('usuario', user)
-                .maybeSingle();
-            
-            if (selectError || !userData) return;
-            
-            const saldoAtual = parseFloat(userData.saldo);
-            const novoSaldo = saldoAtual + valor;
-            
-            await supabaseClient
-                .from('usuarios')
-                .update({ saldo: novoSaldo })
-                .eq('id', userData.id);
-            
-            localStorage.setItem('user_saldo', novoSaldo);
-            
-        } catch (error) {
-            console.error('Erro ao adicionar prêmio:', error);
-        }
+    try {
+        const { data: userData, error: selectError } = await supabase
+            .from('usuarios')
+            .select('id, saldo')
+            .eq('usuario', user)
+            .maybeSingle();
+        
+        if (selectError || !userData) return;
+        
+        const saldoAtual = parseFloat(userData.saldo);
+        const novoSaldo = saldoAtual + valor;
+        
+        await supabase
+            .from('usuarios')
+            .update({ saldo: novoSaldo })
+            .eq('id', userData.id);
+        
+        localStorage.setItem('user_saldo', novoSaldo);
+        
+    } catch (error) {
+        console.error('Erro ao adicionar prêmio:', error);
     }
+}
 
     // LISTA DE MENSAGENS
     const todasMensagens = [
