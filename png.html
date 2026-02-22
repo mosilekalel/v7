@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Final Fix</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 20px; }
+        .container { background: #1e293b; padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; text-align: center; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: none; margin-bottom: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #debug { background: #000; color: #4ade80; padding: 10px; font-size: 11px; border-radius: 8px; margin-top: 15px; text-align: left; min-height: 80px; white-space: pre-wrap; }
+        img { width: 100%; margin-top: 15px; border-radius: 10px; display: none; }
+        .loader { border: 4px solid #334155; border-top: 4px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 15px auto; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚀 IA Final Fix</h2>
+    <input type="text" id="prompt" placeholder="Ex: Magic forest, hyperrealistic">
+    <button onclick="gerar()">Gerar Imagem</button>
+    
+    <div id="debug">Aguardando...</div>
+    <div class="loader" id="loader"></div>
+    <img id="output">
+</div>
+
+<script>
+    const HF_TOKEN = "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";
+
+    function log(msg) {
+        document.getElementById('debug').innerText += "\n> " + msg;
+    }
+
+    async function gerar() {
+        const prompt = document.getElementById('prompt').value;
+        const img = document.getElementById('output');
+        const loader = document.getElementById('loader');
+        const debug = document.getElementById('debug');
+
+        if (!prompt) return;
+
+        debug.innerText = "Iniciando...";
+        img.style.display = "none";
+        loader.style.display = "block";
+
+        try {
+            log("Enviando via API Direct...");
+            
+            const response = await fetch(
+                "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+                {
+                    headers: { 
+                        "Authorization": `Bearer ${HF_TOKEN}`,
+                        "Content-Type": "application/json"
+                    },
+                    method: "POST",
+                    body: JSON.stringify({ inputs: prompt }),
+                }
+            );
+
+            log("Status: " + response.status);
+
+            if (response.status === 503) {
+                log("IA carregando (530). Clique de novo em 10s!");
+                return;
+            }
+
+            if (!response.ok) {
+                const txt = await response.text();
+                log("Erro: " + txt);
+                return;
+            }
+
+            const blob = await response.blob();
+            img.src = URL.createObjectURL(blob);
+            img.style.display = "block";
+            log("SUCESSO!");
+
+        } catch (e) {
+            log("ERRO DE REDE: " + e.message);
+            log("Tentando método alternativo via Proxy...");
+            // Se o fetch direto falhar, aqui poderíamos tentar um proxy, 
+            // mas o erro costuma ser o Token ou o modelo 'dormindo'.
+        } finally {
+            loader.style.display = "none";
+        }
+    }
+</script>
+</body>
+</html>
