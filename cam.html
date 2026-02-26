@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldCam Live | Netlify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); }
+        iframe { border-radius: 0.75rem; border: none; width: 100%; height: 250px; }
+    </style>
+</head>
+<body>
+
+    <header class="sticky top-0 z-50 p-6 glass border-b border-slate-700 shadow-xl">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <h1 class="text-2xl font-black text-blue-500 tracking-tighter">WORLD<span class="text-white">CAM</span></h1>
+            <div class="flex w-full md:w-auto gap-2">
+                <input type="text" id="cityInput" placeholder="Ex: New York, Paris..." 
+                       class="w-full md:w-80 px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none">
+                <button onclick="searchCameras()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-bold">
+                    Explorar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6">
+        <div id="statusContainer" class="text-center mb-10">
+            <p id="statusMessage" class="text-slate-400">Pronto para explorar o mundo via Netlify.</p>
+        </div>
+        <div id="cameraGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </main>
+
+    <script>
+        const API_KEY = '23r7zwPJD1T2Bj0Gy2gxRsaDkVVYymnu';
+
+        async function searchCameras() {
+            const query = document.getElementById('cityInput').value;
+            const grid = document.getElementById('cameraGrid');
+            const status = document.getElementById('statusMessage');
+
+            if (!query) return;
+
+            grid.innerHTML = '';
+            status.innerHTML = "🔍 Buscando câmeras...";
+
+            try {
+                // No Netlify, o fetch direto funciona sem o erro "Failed to fetch" se o domínio estiver ok
+                const url = `https://api.windy.com/webcams/api/v3/webcams?search=${encodeURIComponent(query)}&include=images,location,player&limit=15&lang=pt`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { "x-windy-api-key": API_KEY }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: Verifique se autorizou o novo domínio no painel Windy.`);
+                }
+
+                const data = await response.json();
+
+                if (!data.webcams || data.webcams.length === 0) {
+                    status.innerHTML = "❌ Nenhuma câmera encontrada.";
+                    return;
+                }
+
+                status.innerHTML = `✅ Exibindo ${data.webcams.length} câmeras.`;
+
+                data.webcams.forEach(cam => {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-800 rounded-2xl p-2 border border-slate-700 shadow-lg";
+                    
+                    // Prioriza vídeo se disponível
+                    const media = (cam.player && cam.player.day) 
+                        ? `<iframe src="${cam.player.day}" allowfullscreen></iframe>`
+                        : `<img src="${cam.images.current.preview}" class="w-full h-[250px] object-cover rounded-xl">`;
+
+                    card.innerHTML = `
+                        ${media}
+                        <div class="p-4">
+                            <h3 class="font-bold truncate text-white">${cam.title}</h3>
+                            <p class="text-sm text-slate-400 mt-1">📍 ${cam.location.country}</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                status.innerHTML = `<span class="text-red-400">${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
