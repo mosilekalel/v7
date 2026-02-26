@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white p-5">
+    <div class="flex gap-2 mb-10">
+        <input type="text" id="cidade" class="text-black p-2 rounded w-full" placeholder="Cidade...">
+        <button onclick="buscar()" class="bg-blue-600 p-2 rounded">BUSCAR</button>
+    </div>
+    <div id="resultado" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+    <script>
+        async function buscar() {
+            const query = document.getElementById('cidade').value;
+            const res = await fetch(`https://api.windy.com/webcams/api/v3/webcams?search=${query}&include=images`, {
+                method: 'GET',
+                headers: { "x-windy-api-key": "23r7zwPJD1T2Bj0Gy2gxRsaDkVVYymnu" }
+            });
+
+            if (!res.ok) {
+                alert("A Windy ainda está bloqueando seu domínio. Verifique o painel.");
+                return;
+            }
+
+            const data = await res.json();
+            const div = document.getElementById('resultado');
+            div.innerHTML = "";
+            
+            data.webcams.forEach(cam => {
+                div.innerHTML += `<div><img src="${cam.images.current.preview}" class="w-full"></div>`;
+            });
+        }
+    </script>
+</body>
+</html>
