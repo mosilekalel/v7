@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>WorldCam Teste Real</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white p-5">
+
+    <div class="max-w-xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4 text-center">Teste de Conexão</h1>
+        
+        <div class="flex gap-2">
+            <input type="text" id="cidade" value="Brasil" class="w-full p-3 rounded bg-slate-800 border border-slate-700 text-white outline-none focus:border-blue-500">
+            <button onclick="buscar()" id="btnBuscar" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded font-bold">
+                EXPLORAR
+            </button>
+        </div>
+
+        <div id="status" class="mt-4 text-center text-sm font-mono"></div>
+        <div id="resultado" class="grid grid-cols-1 gap-4 mt-6"></div>
+    </div>
+
+    <script>
+        async function buscar() {
+            const query = document.getElementById('cidade').value;
+            const status = document.getElementById('status');
+            const grid = document.getElementById('resultado');
+            const btn = document.getElementById('btnBuscar');
+
+            // Feedback visual que o botão foi clicado
+            console.log("Botão clicado para buscar:", query);
+            status.innerHTML = "⏳ Processando...";
+            btn.disabled = true;
+            btn.style.opacity = "0.5";
+            grid.innerHTML = "";
+
+            try {
+                const url = `https://api.windy.com/webcams/api/v3/webcams?search=${encodeURIComponent(query)}&include=images&limit=5`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        "x-windy-api-key": "23r7zwPJD1T2Bj0Gy2gxRsaDkVVYymnu"
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    status.innerHTML = "✅ Sucesso!";
+                    
+                    if (data.webcams && data.webcams.length > 0) {
+                        data.webcams.forEach(cam => {
+                            grid.innerHTML += `
+                                <div class="bg-slate-800 p-2 rounded">
+                                    <img src="${cam.images.current.preview}" class="w-full rounded">
+                                    <p class="p-2 text-xs">${cam.title}</p>
+                                </div>`;
+                        });
+                    } else {
+                        status.innerHTML = "❓ Nenhuma câmara encontrada.";
+                    }
+                } else {
+                    const textoErro = await response.text();
+                    status.innerHTML = `❌ Erro ${response.status}: Domínio não autorizado no painel Windy.`;
+                    console.error("Erro da API:", textoErro);
+                }
+
+            } catch (error) {
+                status.innerHTML = "🚫 Erro de Rede: O navegador bloqueou a saída. Verifique se o site é HTTPS.";
+                console.error("Erro fatal:", error);
+            } finally {
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            }
+        }
+    </script>
+</body>
+</html>
