@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>WorldCam Netlify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white">
+    <div class="p-10 text-center">
+        <h1 class="text-3xl font-bold mb-5">WORLD<span class="text-blue-500">CAM</span></h1>
+        <input type="text" id="city" class="text-black p-2 rounded" placeholder="Cidade...">
+        <button onclick="buscar()" class="bg-blue-600 p-2 rounded font-bold">Explorar</button>
+        
+        <div id="status" class="mt-5 text-sm text-slate-400"></div>
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10"></div>
+    </div>
+
+    <script>
+        async function buscar() {
+            const city = document.getElementById('city').value;
+            const status = document.getElementById('status');
+            const grid = document.getElementById('grid');
+            
+            status.innerHTML = "Conectando...";
+            grid.innerHTML = "";
+
+            try {
+                // Endpoint V3 oficial
+                const url = `https://api.windy.com/webcams/api/v3/webcams?search=${encodeURIComponent(city)}&include=images,player&limit=10`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        "x-windy-api-key": "23r7zwPJD1T2Bj0Gy2gxRsaDkVVYymnu"
+                    }
+                });
+
+                if (response.status === 403) {
+                    status.innerHTML = "❌ ERRO 403: Você precisa autorizar o domínio do Netlify no painel da Windy!";
+                    return;
+                }
+
+                const data = await response.json();
+                status.innerHTML = "✅ Conectado!";
+
+                data.webcams.forEach(cam => {
+                    grid.innerHTML += `
+                        <div class="bg-slate-800 p-4 rounded-xl">
+                            <img src="${cam.images.current.preview}" class="w-full rounded shadow-lg">
+                            <p class="mt-2 font-bold">${cam.title}</p>
+                        </div>`;
+                });
+            } catch (e) {
+                status.innerHTML = "❌ Erro de conexão. Verifique se o domínio está liberado na Windy.";
+            }
+        }
+    </script>
+</body>
+</html>
