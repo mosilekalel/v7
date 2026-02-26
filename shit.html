@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldCam Live</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+
+    <header class="p-6 border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
+            <h1 class="text-2xl font-bold text-blue-500">WORLD<span class="text-white">CAM</span></h1>
+            <div class="flex gap-2 w-full md:w-auto">
+                <input type="text" id="cityInput" placeholder="Ex: Foz do Iguaçu" 
+                       class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg w-full outline-none focus:border-blue-500">
+                <button onclick="searchCameras()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-bold">Explorar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6">
+        <div id="status" class="text-center text-slate-400 my-10">
+            Aguardando a sua busca...
+        </div>
+        <div id="cameraGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
+
+    <script>
+        const API_KEY = '23r7zwPJD1T2Bj0Gy2gxRsaDkVVYymnu'; // Sua chave
+
+        async function searchCameras() {
+            const query = document.getElementById('cityInput').value;
+            const grid = document.getElementById('cameraGrid');
+            const status = document.getElementById('status');
+
+            if (!query) return;
+
+            grid.innerHTML = '';
+            status.innerHTML = "🔍 Ligando aos servidores da Windy...";
+
+            try {
+                // Endpoint V3
+                const url = `https://api.windy.com/webcams/api/v3/webcams?search=${encodeURIComponent(query)}&include=images,player&limit=12&lang=pt`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        "x-windy-api-key": API_KEY // Header obrigatório
+                    }
+                });
+
+                if (response.status === 403) {
+                    status.innerHTML = "❌ Erro 403: Domínio ainda não autorizado. <br> Verifique se removeu o 'https://' do painel da Windy.";
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!data.webcams || data.webcams.length === 0) {
+                    status.innerHTML = "Nenhuma câmara encontrada para este local.";
+                    return;
+                }
+
+                status.innerHTML = "";
+
+                data.webcams.forEach(cam => {
+                    const media = (cam.player && cam.player.day) 
+                        ? `<iframe src="${cam.player.day}" class="w-full h-52 rounded-t-xl" frameborder="0"></iframe>`
+                        : `<img src="${cam.images.current.preview}" class="w-full h-52 object-cover rounded-t-xl">`;
+
+                    grid.innerHTML += `
+                        <div class="bg-slate-800 rounded-xl border border-slate-700 shadow-lg">
+                            ${media}
+                            <div class="p-4">
+                                <h3 class="font-bold truncate">${cam.title}</h3>
+                                <p class="text-sm text-slate-500 mt-1">ID: ${cam.webcamId}</p>
+                            </div>
+                        </div>`;
+                });
+
+            } catch (error) {
+                status.innerHTML = "⚠️ Falha de rede. Tente recarregar a página.";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
